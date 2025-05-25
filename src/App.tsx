@@ -50,7 +50,7 @@ function Content() {
 
       <Unauthenticated>
         <div className="w-full max-w-md mx-auto">
-         <SignInForm />
+          <SignInForm />
         </div>
       </Unauthenticated>
       <Authenticated>
@@ -185,9 +185,8 @@ function FileManagement() {
 
   return (
     <div
-      className={`p-6 border-2 ${
-        isDragging ? "border-primary bg-blue-50" : "border-dashed border-gray-300"
-      } rounded-lg transition-all duration-200`}
+      className={`p-6 border-2 ${isDragging ? "border-primary bg-blue-50" : "border-dashed border-gray-300"
+        } rounded-lg transition-all duration-200`}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
@@ -242,11 +241,10 @@ function FileManagement() {
           {files.map((file) => (
             <div
               key={file._id}
-              className={`p-4 border rounded-lg shadow-sm cursor-pointer transition-all ${
-                selectedFiles.has(file._id)
-                  ? "ring-2 ring-primary bg-blue-50"
-                  : "hover:shadow-md"
-              }`}
+              className={`p-4 border rounded-lg shadow-sm cursor-pointer transition-all ${selectedFiles.has(file._id)
+                ? "ring-2 ring-primary bg-blue-50"
+                : "hover:shadow-md"
+                }`}
               onClick={() => handleFileSelect(file._id)}
             >
               <div className="flex justify-between items-start">
@@ -254,7 +252,7 @@ function FileManagement() {
                 <input
                   type="checkbox"
                   checked={selectedFiles.has(file._id)}
-                  onChange={() => handleFileSelect(file._id)}
+                  onClick={() => handleFileSelect(file._id)}
                   className="form-checkbox h-5 w-5 text-primary rounded border-gray-300 focus:ring-primary"
                 />
               </div>
@@ -263,15 +261,15 @@ function FileManagement() {
               {file.url && (file.type.startsWith("image/") ? (
                 <img src={file.url} alt={file.name} className="mt-2 rounded-md max-h-40 object-contain w-full" />
               ) : (
-                 <a
-                    href={file.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="mt-2 inline-block px-3 py-1 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 text-xs"
-                    onClick={(e) => e.stopPropagation()} // Prevent card selection when clicking link
-                  >
-                    View File
-                  </a>
+                <a
+                  href={file.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-2 inline-block p-3 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300"
+                  onClick={(e) => e.stopPropagation()} // Prevent card selection when clicking link
+                >
+                  View File
+                </a>
               ))}
             </div>
           ))}
