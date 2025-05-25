@@ -1,5 +1,5 @@
 export { Content } from "./Content";
 export { FileCard } from "./FileCard";
-export { FileManagement } from "./FileManagement";
+export { FileManagement } from "./FileMain";
 export { FileUploadArea } from "./FileUploadArea";
 
