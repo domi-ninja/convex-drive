@@ -1,10 +1,10 @@
-import { Authenticated, Unauthenticated, useMutation, useQuery, useAction } from "convex/react";
+import { Authenticated, Unauthenticated, useAction, useMutation, useQuery } from "convex/react";
+import React, { useCallback, useState } from "react";
+import { Toaster, toast } from "sonner";
 import { api } from "../convex/_generated/api"; // This will now include api.fileActions
+import { Id } from "../convex/_generated/dataModel";
 import { SignInForm } from "./SignInForm";
 import { SignOutButton } from "./SignOutButton";
-import { Toaster, toast } from "sonner";
-import React, { FormEvent, useCallback, useState } from "react";
-import { Id } from "../convex/_generated/dataModel";
 
 export default function App() {
   return (
