@@ -21,7 +21,7 @@ export default function App() {
         </div>
         <SignOutButton />
       </header>
-      <main className="flex-1 flex flex-col items-center justify-center p-8">
+      <main className="flex-1 flex flex-col p-8">
         <div className="w-full max-w-4xl mx-auto">
           <Content />
         </div>
