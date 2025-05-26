@@ -174,12 +174,26 @@ export function FileManageTable({ files }: { files: FileWithUrl[] }) {
     };
 
     return (
-        <div>
+        <div className="select-none">
             {files.length > 0 && (
                 <div className="pt-8">
                     <div className="flex justify-between items-center mb-4">
                         <h2 className="text-2xl font-semibold cursor-pointer" onClick={() => setSelectedFiles(new Set())}>
-                            {selectedFiles.size > 0 ? `${selectedFiles.size} Files Selected` : "Your Files"}
+                            {selectedFiles.size > 0 ? (<div>{selectedFiles.size} Files Selected
+                                <span>
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setSelectedFiles(new Set());
+                                        }}
+                                        className="ml-2 text-sm text-gray-500 hover:text-gray-700"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-4">
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
+                                </span>
+                            </div>) : "Your Files"}
                         </h2>
 
                         <div className="flex items-center gap-2">
@@ -319,22 +333,22 @@ export function FileManageTable({ files }: { files: FileWithUrl[] }) {
                             </table>
                         )}
                         {viewMode === "grid" && (
-                            <div className="grid grid-cols-4 gap-4">
+                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 xl:grid-cols-8 gap-4">
                                 {sortedFiles.map((file) => (
-                                    <div key={file._id} className="bg-white rounded-lg shadow-sm">
+                                    <div key={file._id} className="bg-white rounded-lg shadow-sm w-full">
                                         {IsPreviewable(file.type) && file.url ? (
-                                            <img src={file.url} alt={file.name} className="w-full h-48 object-cover rounded-t-lg" />
+                                            <img src={file.url} alt={file.name} className="h-48 w-48 object-contain" />
                                         ) : (
-                                            <div className="h-48 bg-gray-100 rounded-t-lg flex items-center justify-center flex-col gap-2">
+                                            <div className="h-48 bg-gray-100 flex items-center justify-center flex-col gap-2">
                                                 <p className="text-sm text-gray-500">{file.type}</p>
                                                 <p className="text-sm text-gray-500">{formatFileSize(file.size)}</p>
                                                 <p className="text-sm text-gray-500">{formatDate(file._creationTime)}</p>
                                             </div>
                                         )}
-                                        <label className="flex flex-row gap-2 p-4">
+                                        <div className="flex flex-row gap-2 p-4">
                                             <input type="checkbox" checked={selectedFiles.has(file._id)} onChange={(e) => handleFileSelect(file._id, e)} className="form-checkbox h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500 mt-2" />
                                             <h3 className="text-lg font-semibold text-gray-900">{file.name}</h3>
-                                        </label>
+                                        </div>
                                     </div>
                                 ))}
                             </div>
