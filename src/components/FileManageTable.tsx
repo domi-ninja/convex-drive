@@ -15,9 +15,11 @@ export function FileManageTable({ files }: { files: FileWithUrl[] }) {
     const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
     const [viewMode, setViewMode] = useState<ViewMode>('list');
     const [lastSelectedIndex, setLastSelectedIndex] = useState<number | null>(null);
-
+    const [editingFileId, setEditingFileId] = useState<Id<"files"> | null>(null);
+    const [editingFileName, setEditingFileName] = useState<string>("");
 
     const deleteFileMutation = useMutation(api.files.deleteFile);
+    const renameFileMutation = useMutation(api.files.renameFile);
     const downloadFilesAsZipAction = useAction(api.fileActions.downloadFilesAsZip);
 
     const formatFileSize = (bytes: number) => {
@@ -161,6 +163,43 @@ export function FileManageTable({ files }: { files: FileWithUrl[] }) {
         }
     };
 
+    const handleStartRename = (fileId: Id<"files">, currentName: string) => {
+        setEditingFileId(fileId);
+        setEditingFileName(currentName);
+    };
+
+    const handleSaveRename = async () => {
+        if (!editingFileId || !editingFileName.trim()) {
+            toast.error("File name cannot be empty");
+            return;
+        }
+        try {
+            await renameFileMutation({
+                fileId: editingFileId,
+                newName: editingFileName.trim()
+            });
+            toast.success("File renamed successfully");
+            setEditingFileId(null);
+            setEditingFileName("");
+        } catch (error) {
+            console.error("Failed to rename file:", error);
+            toast.error("Failed to rename file");
+        }
+    };
+
+    const handleCancelRename = () => {
+        setEditingFileId(null);
+        setEditingFileName("");
+    };
+
+    const handleRenameKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter') {
+            handleSaveRename();
+        } else if (e.key === 'Escape') {
+            handleCancelRename();
+        }
+    };
+
     const SortIcon = ({ field }: { field: SortField }) => {
         if (sortField !== field) {
             return <span className="text-gray-400">↕</span>;
@@ -299,9 +338,41 @@ export function FileManageTable({ files }: { files: FileWithUrl[] }) {
                                                 />
                                             </td>
                                             <td className="px-4 py-1 whitespace-nowrap">
-                                                <div className="text-sm font-medium text-gray-900 max-w-xs truncate" title={file.name}>
-                                                    {file.name}
-                                                </div>
+                                                {editingFileId === file._id ? (
+                                                    <div className="flex items-center gap-2">
+                                                        <input
+                                                            type="text"
+                                                            value={editingFileName}
+                                                            onChange={(e) => setEditingFileName(e.target.value)}
+                                                            onKeyDown={handleRenameKeyDown}
+                                                            onBlur={handleSaveRename}
+                                                            className="text-sm font-medium text-gray-900 border border-blue-500 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                            autoFocus
+                                                        />
+                                                        <button
+                                                            onClick={handleSaveRename}
+                                                            className="text-green-600 hover:text-green-800"
+                                                            title="Save"
+                                                        >
+                                                            ✓
+                                                        </button>
+                                                        <button
+                                                            onClick={handleCancelRename}
+                                                            className="text-red-600 hover:text-red-800"
+                                                            title="Cancel"
+                                                        >
+                                                            ✕
+                                                        </button>
+                                                    </div>
+                                                ) : (
+                                                    <div
+                                                        className="text-sm font-medium text-gray-900 max-w-xs truncate cursor-pointer hover:text-blue-600"
+                                                        title={file.name}
+                                                        onClick={() => handleStartRename(file._id, file.name)}
+                                                    >
+                                                        {file.name}
+                                                    </div>
+                                                )}
                                             </td>
                                             <td className="px-4 py-1 whitespace-nowrap">
                                                 <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
@@ -347,7 +418,40 @@ export function FileManageTable({ files }: { files: FileWithUrl[] }) {
                                         )}
                                         <div className="flex flex-row gap-2 p-4">
                                             <input type="checkbox" checked={selectedFiles.has(file._id)} onChange={(e) => handleFileSelect(file._id, e)} className="form-checkbox h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500 mt-2" />
-                                            <h3 className="text-lg font-semibold text-gray-900">{file.name}</h3>
+                                            {editingFileId === file._id ? (
+                                                <div className="flex items-center gap-2 flex-1">
+                                                    <input
+                                                        type="text"
+                                                        value={editingFileName}
+                                                        onChange={(e) => setEditingFileName(e.target.value)}
+                                                        onKeyDown={handleRenameKeyDown}
+                                                        onBlur={handleSaveRename}
+                                                        className="text-lg font-semibold text-gray-900 border border-blue-500 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 flex-1"
+                                                        autoFocus
+                                                    />
+                                                    <button
+                                                        onClick={handleSaveRename}
+                                                        className="text-green-600 hover:text-green-800"
+                                                        title="Save"
+                                                    >
+                                                        ✓
+                                                    </button>
+                                                    <button
+                                                        onClick={handleCancelRename}
+                                                        className="text-red-600 hover:text-red-800"
+                                                        title="Cancel"
+                                                    >
+                                                        ✕
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <h3
+                                                    className="text-lg font-semibold text-gray-900 cursor-pointer hover:text-blue-600"
+                                                    onClick={() => handleStartRename(file._id, file.name)}
+                                                >
+                                                    {file.name}
+                                                </h3>
+                                            )}
                                         </div>
                                     </div>
                                 ))}

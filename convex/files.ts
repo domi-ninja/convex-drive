@@ -6,7 +6,7 @@ import {
 } from "./_generated/server";
 // Removed "use node" and JSZip import as actions are moved
 import { getAuthUserId } from "@convex-dev/auth/server";
-import { Doc, Id } from "./_generated/dataModel";
+import { Doc } from "./_generated/dataModel";
 
 export const generateUploadUrl = mutation({
   handler: async (ctx): Promise<string> => {
@@ -76,6 +76,27 @@ export const deleteFile = mutation({
     }
     await ctx.storage.delete(file.storageId);
     await ctx.db.delete(args.fileId);
+  },
+});
+
+export const renameFile = mutation({
+  args: {
+    fileId: v.id("files"),
+    newName: v.string()
+  },
+  handler: async (ctx, args): Promise<void> => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
+      throw new Error("User not authenticated");
+    }
+    const file = await ctx.db.get(args.fileId);
+    if (!file || file.userId !== userId) {
+      throw new Error("File not found or user not authorized");
+    }
+    if (!args.newName.trim()) {
+      throw new Error("File name cannot be empty");
+    }
+    await ctx.db.patch(args.fileId, { name: args.newName.trim() });
   },
 });
 
