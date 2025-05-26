@@ -14,6 +14,7 @@ export function FileManageTable({ files }: { files: FileWithUrl[] }) {
     const [sortField, setSortField] = useState<SortField>('_creationTime');
     const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
     const [viewMode, setViewMode] = useState<ViewMode>('list');
+    const [lastSelectedIndex, setLastSelectedIndex] = useState<number | null>(null);
 
 
     const deleteFileMutation = useMutation(api.files.deleteFile);
@@ -76,16 +77,34 @@ export function FileManageTable({ files }: { files: FileWithUrl[] }) {
         return 0;
     });
 
-    const handleFileSelect = (fileId: Id<"files">) => {
-        setSelectedFiles((prevSelected) => {
-            const newSelected = new Set(prevSelected);
-            if (newSelected.has(fileId)) {
-                newSelected.delete(fileId);
-            } else {
-                newSelected.add(fileId);
-            }
-            return newSelected;
-        });
+    const handleFileSelect = (fileId: Id<"files">, event?: React.ChangeEvent<HTMLInputElement>) => {
+        const currentIndex = sortedFiles.findIndex(file => file._id === fileId);
+
+        if (event?.nativeEvent && 'shiftKey' in event.nativeEvent && event.nativeEvent.shiftKey && lastSelectedIndex !== null) {
+            // Range selection
+            const startIndex = Math.min(lastSelectedIndex, currentIndex);
+            const endIndex = Math.max(lastSelectedIndex, currentIndex);
+
+            setSelectedFiles((prevSelected) => {
+                const newSelected = new Set(prevSelected);
+                for (let i = startIndex; i <= endIndex; i++) {
+                    newSelected.add(sortedFiles[i]._id);
+                }
+                return newSelected;
+            });
+        } else {
+            // Single selection
+            setSelectedFiles((prevSelected) => {
+                const newSelected = new Set(prevSelected);
+                if (newSelected.has(fileId)) {
+                    newSelected.delete(fileId);
+                } else {
+                    newSelected.add(fileId);
+                }
+                return newSelected;
+            });
+            setLastSelectedIndex(currentIndex);
+        }
     };
 
     const handleSelectAll = () => {
@@ -159,7 +178,7 @@ export function FileManageTable({ files }: { files: FileWithUrl[] }) {
             {files.length > 0 && (
                 <div className="pt-8">
                     <div className="flex justify-between items-center mb-4">
-                        <h2 className="text-2xl font-semibold">
+                        <h2 className="text-2xl font-semibold cursor-pointer" onClick={() => setSelectedFiles(new Set())}>
                             {selectedFiles.size > 0 ? `${selectedFiles.size} Files Selected` : "Your Files"}
                         </h2>
 
@@ -261,7 +280,7 @@ export function FileManageTable({ files }: { files: FileWithUrl[] }) {
                                                 <input
                                                     type="checkbox"
                                                     checked={selectedFiles.has(file._id)}
-                                                    onChange={() => handleFileSelect(file._id)}
+                                                    onChange={(e) => handleFileSelect(file._id, e)}
                                                     className="form-checkbox h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
                                                 />
                                             </td>
@@ -303,17 +322,17 @@ export function FileManageTable({ files }: { files: FileWithUrl[] }) {
                             <div className="grid grid-cols-4 gap-4">
                                 {sortedFiles.map((file) => (
                                     <div key={file._id} className="bg-white rounded-lg shadow-sm">
-                                        {IsPreviewable(file.type) ? (
+                                        {IsPreviewable(file.type) && file.url ? (
                                             <img src={file.url} alt={file.name} className="w-full h-48 object-cover rounded-t-lg" />
                                         ) : (
-                                            <div className="h-48 bg-gray-100 rounded-t-lg flex items-center justify-center">
+                                            <div className="h-48 bg-gray-100 rounded-t-lg flex items-center justify-center flex-col gap-2">
                                                 <p className="text-sm text-gray-500">{file.type}</p>
                                                 <p className="text-sm text-gray-500">{formatFileSize(file.size)}</p>
                                                 <p className="text-sm text-gray-500">{formatDate(file._creationTime)}</p>
                                             </div>
                                         )}
                                         <label className="flex flex-row gap-2 p-4">
-                                            <input type="checkbox" checked={selectedFiles.has(file._id)} onChange={() => handleFileSelect(file._id)} className="form-checkbox h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500 mt-2" />
+                                            <input type="checkbox" checked={selectedFiles.has(file._id)} onChange={(e) => handleFileSelect(file._id, e)} className="form-checkbox h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500 mt-2" />
                                             <h3 className="text-lg font-semibold text-gray-900">{file.name}</h3>
                                         </label>
                                     </div>
