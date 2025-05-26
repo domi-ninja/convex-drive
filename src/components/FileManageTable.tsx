@@ -7,11 +7,14 @@ import { Id } from "../../convex/_generated/dataModel";
 
 type SortField = 'name' | 'type' | 'size' | '_creationTime';
 type SortDirection = 'asc' | 'desc';
+type ViewMode = 'grid' | 'list';
 
 export function FileManageTable({ files }: { files: FileWithUrl[] }) {
     const [selectedFiles, setSelectedFiles] = useState<Set<Id<"files">>>(new Set());
     const [sortField, setSortField] = useState<SortField>('_creationTime');
     const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+    const [viewMode, setViewMode] = useState<ViewMode>('list');
+
 
     const deleteFileMutation = useMutation(api.files.deleteFile);
     const downloadFilesAsZipAction = useAction(api.fileActions.downloadFilesAsZip);
@@ -146,6 +149,11 @@ export function FileManageTable({ files }: { files: FileWithUrl[] }) {
         return sortDirection === 'asc' ? <span className="text-blue-600">↑</span> : <span className="text-blue-600">↓</span>;
     };
 
+    const IsPreviewable = (type: string | null | undefined) => {
+        if (!type) return false;
+        return type.startsWith("image/") || type.startsWith("video/");
+    };
+
     return (
         <div>
             {files.length > 0 && (
@@ -154,6 +162,23 @@ export function FileManageTable({ files }: { files: FileWithUrl[] }) {
                         <h2 className="text-2xl font-semibold">
                             {selectedFiles.size > 0 ? `${selectedFiles.size} Files Selected` : "Your Files"}
                         </h2>
+
+                        <div className="flex items-center gap-2">
+                            <div onClick={() => setViewMode("grid")} className={`flex items-center gap-2 cursor-pointer p-4 rounded-md ${viewMode === "grid" ? "bg-gray-200" : ""}`}>
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 4.75h6.5v6.5h-6.5v-6.5zM13.75 4.75h6.5v6.5h-6.5v-6.5zM3.75 13.75h6.5v6.5h-6.5v-6.5zM13.75 13.75h6.5v6.5h-6.5v-6.5z" />
+                                </svg>
+
+                                <span>Grid</span>
+                            </div>
+                            <div onClick={() => setViewMode("list")} className={`flex items-center gap-2 cursor-pointer p-4 rounded-md ${viewMode === "list" ? "bg-gray-200" : ""}`}>
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+                                </svg>
+
+                                <span>List</span>
+                            </div>
+                        </div>
 
                         <div className="flex justify-end gap-2">
                             <button
@@ -172,110 +197,133 @@ export function FileManageTable({ files }: { files: FileWithUrl[] }) {
                             </button>
                         </div>
                     </div>
-
                     <div className="overflow-x-auto">
-                        <table className="min-w-full bg-white border border-gray-200 rounded-lg shadow-sm">
-                            <thead className="bg-gray-50">
-                                <tr>
-                                    <th className="px-4 py-3 text-left">
-                                        <input
-                                            type="checkbox"
-                                            checked={selectedFiles.size === files.length && files.length > 0}
-                                            onChange={handleSelectAll}
-                                            className="form-checkbox h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
-                                        />
-                                    </th>
-                                    <th
-                                        className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                                        onClick={() => handleSort('name')}
-                                    >
-                                        <div className="flex items-center gap-1">
-                                            Name
-                                            <SortIcon field="name" />
-                                        </div>
-                                    </th>
-                                    <th
-                                        className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                                        onClick={() => handleSort('type')}
-                                    >
-                                        <div className="flex items-center gap-1">
-                                            Type
-                                            <SortIcon field="type" />
-                                        </div>
-                                    </th>
-                                    <th
-                                        className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                                        onClick={() => handleSort('size')}
-                                    >
-                                        <div className="flex items-center gap-1">
-                                            Size
-                                            <SortIcon field="size" />
-                                        </div>
-                                    </th>
-                                    <th
-                                        className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                                        onClick={() => handleSort('_creationTime')}
-                                    >
-                                        <div className="flex items-center gap-1">
-                                            Upload Date
-                                            <SortIcon field="_creationTime" />
-                                        </div>
-                                    </th>
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Preview
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody className="bg-white divide-y divide-gray-200">
-                                {sortedFiles.map((file) => (
-                                    <tr
-                                        key={file._id}
-                                        className={`hover:bg-gray-50 ${selectedFiles.has(file._id) ? 'bg-blue-50' : ''}`}
-                                    >
-                                        <td className="px-4 py-4 whitespace-nowrap">
+                        {viewMode === "list" && (
+                            <table className="min-w-full bg-white border border-gray-200 rounded-lg shadow-sm">
+                                <thead className="bg-gray-50">
+                                    <tr>
+                                        <th className="px-4 py-3 text-left">
                                             <input
                                                 type="checkbox"
-                                                checked={selectedFiles.has(file._id)}
-                                                onChange={() => handleFileSelect(file._id)}
+                                                checked={selectedFiles.size === files.length && files.length > 0}
+                                                onChange={handleSelectAll}
                                                 className="form-checkbox h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
                                             />
-                                        </td>
-                                        <td className="px-4 py-4 whitespace-nowrap">
-                                            <div className="text-sm font-medium text-gray-900 max-w-xs truncate" title={file.name}>
-                                                {file.name}
+                                        </th>
+                                        <th
+                                            className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                                            onClick={() => handleSort('name')}
+                                        >
+                                            <div className="flex items-center gap-1">
+                                                Name
+                                                <SortIcon field="name" />
                                             </div>
-                                        </td>
-                                        <td className="px-4 py-4 whitespace-nowrap">
-                                            <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
-                                                {file.type}
-                                            </span>
-                                        </td>
-                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {formatFileSize(file.size)}
-                                        </td>
-                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {formatDate(file._creationTime)}
-                                        </td>
-                                        <td className="px-4 py-4 whitespace-nowrap">
-                                            {file.url && file.type.startsWith("image/") ? (
-                                                <img
-                                                    src={file.url}
-                                                    alt={file.name}
-                                                    className="h-12 w-12 object-cover rounded-md border"
-                                                />
-                                            ) : (
-                                                <div className="h-12 w-12 bg-gray-100 rounded-md flex items-center justify-center">
-                                                    <span className="text-xs text-gray-500">📄</span>
-                                                </div>
-                                            )}
-                                        </td>
+                                        </th>
+                                        <th
+                                            className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                                            onClick={() => handleSort('type')}
+                                        >
+                                            <div className="flex items-center gap-1">
+                                                Type
+                                                <SortIcon field="type" />
+                                            </div>
+                                        </th>
+                                        <th
+                                            className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                                            onClick={() => handleSort('size')}
+                                        >
+                                            <div className="flex items-center gap-1">
+                                                Size
+                                                <SortIcon field="size" />
+                                            </div>
+                                        </th>
+                                        <th
+                                            className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                                            onClick={() => handleSort('_creationTime')}
+                                        >
+                                            <div className="flex items-center gap-1">
+                                                Upload Date
+                                                <SortIcon field="_creationTime" />
+                                            </div>
+                                        </th>
+                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Preview
+                                        </th>
                                     </tr>
+                                </thead>
+                                <tbody className="bg-white divide-y divide-gray-200">
+                                    {sortedFiles.map((file) => (
+                                        <tr
+                                            key={file._id}
+                                            className={`hover:bg-gray-50 ${selectedFiles.has(file._id) ? 'bg-blue-50' : ''}`}
+                                        >
+                                            <td className="px-4 py-1 whitespace-nowrap">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedFiles.has(file._id)}
+                                                    onChange={() => handleFileSelect(file._id)}
+                                                    className="form-checkbox h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                                                />
+                                            </td>
+                                            <td className="px-4 py-1 whitespace-nowrap">
+                                                <div className="text-sm font-medium text-gray-900 max-w-xs truncate" title={file.name}>
+                                                    {file.name}
+                                                </div>
+                                            </td>
+                                            <td className="px-4 py-1 whitespace-nowrap">
+                                                <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
+                                                    {file.type}
+                                                </span>
+                                            </td>
+                                            <td className="px-4 py-1 whitespace-nowrap text-sm text-gray-500">
+                                                {formatFileSize(file.size)}
+                                            </td>
+                                            <td className="px-4 py-1 whitespace-nowrap text-sm text-gray-500">
+                                                {formatDate(file._creationTime)}
+                                            </td>
+                                            <td className="px-4 py-1 whitespace-nowrap">
+                                                {file.url && file.type.startsWith("image/") ? (
+                                                    <img
+                                                        src={file.url}
+                                                        alt={file.name}
+                                                        className="h-12 w-12 object-cover rounded-md border"
+                                                    />
+                                                ) : (
+                                                    <div className="h-12 w-12 bg-gray-100 rounded-md flex items-center justify-center">
+                                                        <span className="text-xs text-gray-500">📄</span>
+                                                    </div>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        )}
+                        {viewMode === "grid" && (
+                            <div className="grid grid-cols-4 gap-4">
+                                {sortedFiles.map((file) => (
+                                    <div key={file._id} className="bg-white rounded-lg shadow-sm">
+                                        {IsPreviewable(file.type) ? (
+                                            <img src={file.url} alt={file.name} className="w-full h-48 object-cover rounded-t-lg" />
+                                        ) : (
+                                            <div className="h-48 bg-gray-100 rounded-t-lg flex items-center justify-center">
+                                                <p className="text-sm text-gray-500">{file.type}</p>
+                                                <p className="text-sm text-gray-500">{formatFileSize(file.size)}</p>
+                                                <p className="text-sm text-gray-500">{formatDate(file._creationTime)}</p>
+                                            </div>
+                                        )}
+                                        <label className="flex flex-row gap-2 p-4">
+                                            <input type="checkbox" checked={selectedFiles.has(file._id)} onChange={() => handleFileSelect(file._id)} className="form-checkbox h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500 mt-2" />
+                                            <h3 className="text-lg font-semibold text-gray-900">{file.name}</h3>
+                                        </label>
+                                    </div>
                                 ))}
-                            </tbody>
-                        </table>
+                            </div>
+                        )}
                     </div>
                 </div>
-            )}
-        </div>
+            )
+            }
+        </div >
     );
 }
