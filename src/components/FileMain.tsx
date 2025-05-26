@@ -31,7 +31,7 @@ export function FileManagement() {
     };
 
     return (
-        <div>
+        <div className="p-8">
             <FileUploadArea
                 onUpload={handleUpload}
             />

@@ -11,9 +11,11 @@ export default function App() {
     <Router>
       <div id="background" className="min-h-screen flex flex-col">
         <Header />
-        <main className="flex-1 container mx-auto px-4 py-8 max-w-4xl">
+        <main className="">
           <Unauthenticated>
-            <SignInForm />
+            <div className="flex-1 container mx-auto px-4 py-8 max-w-2xl pt-24">
+              <SignInForm />
+            </div>
           </Unauthenticated>
           <Authenticated>
             <Routes>
