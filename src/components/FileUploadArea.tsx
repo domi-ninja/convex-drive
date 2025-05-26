@@ -28,6 +28,8 @@ export function FileUploadArea({
             event.stopPropagation();
             setIsDragging(false);
             const droppedFiles = event.dataTransfer.files;
+            console.log(event.dataTransfer);
+            return;
             if (droppedFiles && droppedFiles.length > 0) {
                 await onUpload(droppedFiles);
                 event.dataTransfer.clearData();
@@ -44,7 +46,7 @@ export function FileUploadArea({
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
         >
-            <div className="flex justify-center flex-col items-center mb-6 h-60">
+            <div className="flex justify-center flex-row items-center flex-wrap gap-4">
                 <input
                     type="file"
                     multiple
@@ -58,21 +60,15 @@ export function FileUploadArea({
                 >
                     Upload Files
                 </label>
-                <div className="flex items-center my-4 w-full max-w-xs">
+                {/* <div className="flex items-center my-4 w-full max-w-20">
                     <div className="flex-1 h-px bg-gray-300"></div>
                     <span className="px-3 text-gray-500 text-sm">or</span>
                     <div className="flex-1 h-px bg-gray-300"></div>
-                </div>
+                </div> */}
                 <span className={isDragging ? "text-primary" : "text-gray-500"}>
-                    Drop files here to upload
+                    Drop folders here to upload
                 </span>
             </div>
-
-            {isDragging && (
-                <div className="text-center py-10 text-primary font-semibold">
-                    Drop files here to upload
-                </div>
-            )}
         </div>
     );
 } 
