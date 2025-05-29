@@ -21,6 +21,8 @@ export function FileManageTable({ files, uploadingCount = 0 }: { files: FileWith
     const [isRenaming, setIsRenaming] = useState(false);
     const deleteFileMutation = useMutation(api.files.deleteFile);
     const renameFileMutation = useMutation(api.files.renameFile);
+    const [isCreatingFolder, setIsCreatingFolder] = useState(false);
+    const [newFolderName, setNewFolderName] = useState<string>("");
     const downloadFilesAsZipAction = useAction(api.fileActions.downloadFilesAsZip);
 
     const formatFileSize = (bytes: number) => {
@@ -226,13 +228,36 @@ export function FileManageTable({ files, uploadingCount = 0 }: { files: FileWith
         return type.startsWith("image/") || type.startsWith("video/");
     };
 
+    const handleCreateFolder = () => {
+        setIsCreatingFolder(true);
+        setNewFolderName("");
+    };
+
+    const handleCancelCreateFolder = () => {
+        setIsCreatingFolder(false);
+        setNewFolderName("");
+    };
+
+    const handleFinishCreateFolder = async () => {
+        // TODO: Implement folder creation logic
+        console.log("Creating folder:", newFolderName);
+    };
+
+    const handleCreateFolderKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter') {
+            handleFinishCreateFolder();
+        } else if (e.key === 'Escape') {
+            handleCancelCreateFolder();
+        }
+    };
+
     return (
         <div className="select-none">
 
             {files.length > 0 && (
                 <div className="pt-8">
-                    <div className="flex justify-between items-center mb-4">
-                        <h2 className="text-2xl font-semibold cursor-pointer" onClick={() => setSelectedFiles(new Set())}>
+                    <div className="grid grid-cols-3 items-center mb-4">
+                        <h2 className={`text-2xl font-semibold cursor-pointer p-2 ${selectedFiles.size > 0 ? "bg-gray-200 rounded-md w-fit" : ""}`} onClick={() => setSelectedFiles(new Set())}>
                             {selectedFiles.size > 0 ? (<div>{selectedFiles.size} Files Selected
                                 <span>
                                     <button
@@ -472,6 +497,29 @@ export function FileManageTable({ files, uploadingCount = 0 }: { files: FileWith
                                         </div>
                                     </div>
                                 ))}
+                                <div onClick={() => handleCreateFolder()} className="bg-gray-100 rounded-lg border border-gray-200 w-full p-4 flex items-end gap-2 cursor-pointer hover:bg-gray-200 h-24">
+                                    {(isCreatingFolder) ? (
+                                        <input
+                                            type="text"
+                                            id="new-folder-name"
+                                            value={newFolderName}
+                                            onChange={(e) => setNewFolderName(e.target.value)}
+                                            onBlur={handleCancelCreateFolder}
+                                            onKeyDown={handleCreateFolderKeyDown}
+                                            className="text-gray-900 border border-blue-500 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm text-break"
+                                            autoFocus
+                                        />
+                                    ) : (
+                                        <div>
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 text-gray-500">
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 10.5v6m3-3H9m4.06-7.19l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z" />
+                                            </svg>
+                                            <span className="text-gray-500">
+                                                Create Folder
+                                            </span>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         )}
                     </div>
