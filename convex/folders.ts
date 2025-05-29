@@ -66,6 +66,27 @@ export const listFoldersInFolder = query({
   },
 });
 
+export const renameFolder = mutation({
+  args: {
+    folderId: v.id("folders"),
+    newName: v.string()
+  },
+  handler: async (ctx, args): Promise<void> => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
+      throw new Error("User not authenticated");
+    }
+    const folder = await ctx.db.get(args.folderId);
+    if (!folder || folder.userId !== userId) {
+      throw new Error("Folder not found or user not authorized");
+    }
+    if (!args.newName.trim()) {
+      throw new Error("Folder name cannot be empty");
+    }
+    await ctx.db.patch(args.folderId, { name: args.newName.trim() });
+  },
+});
+
 export const getFilesAndFoldersRec = query({
   args: { folderId: v.id("folders") },
   handler: async (ctx, args): Promise<FolderWithFiles> => {
@@ -143,6 +164,21 @@ export const deleteFile = mutation({
     }
     await ctx.storage.delete(file.storageId);
     await ctx.db.delete(args.fileId);
+  },
+});
+
+export const deleteFolder = mutation({
+  args: { folderId: v.id("folders") },
+  handler: async (ctx, args): Promise<void> => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
+      throw new Error("User not authenticated");
+    }
+    const folder = await ctx.db.get(args.folderId);
+    if (!folder || folder.userId !== userId) {
+      throw new Error("File not found or user not authorized");
+    }
+    await ctx.db.delete(args.folderId);
   },
 });
 

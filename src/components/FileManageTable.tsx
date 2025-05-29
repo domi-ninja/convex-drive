@@ -1,4 +1,5 @@
 import { cleanFileName } from "@/lib/file";
+import console from "console";
 import { useAction, useMutation, useQuery } from "convex/react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -19,17 +20,22 @@ type FileOrFolder = {
     url: string | null;
 }
 
+type RenamingThing = {
+    id: Id<"files"> | Id<"folders">;
+    name: string;
+    type: "file" | "folder";
+}
 export function FileManageTable({ rootFolderId }: { rootFolderId: Id<"folders"> }) {
     const [selectedFiles, setSelectedFiles] = useState<Set<Id<"files"> | Id<"folders">>>(new Set());
     const [sortField, setSortField] = useState<SortField>('_creationTime');
     const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
     const [viewMode, setViewMode] = useState<ViewMode>('list');
     const [lastSelectedIndex, setLastSelectedIndex] = useState<number | null>(null);
-    const [editingFileId, setEditingFileId] = useState<Id<"files"> | null>(null);
-    const [editingFileName, setEditingFileName] = useState<string>("");
-    const [isRenaming, setIsRenaming] = useState(false);
+    const [renamingThing, setRenamingThing] = useState<RenamingThing | null>(null);
     const deleteFileMutation = useMutation(api.files.deleteFile);
+    const deleteFolderMutation = useMutation(api.folders.deleteFolder);
     const renameFileMutation = useMutation(api.files.renameFile);
+    const renameFolderMutation = useMutation(api.folders.renameFolder);
     const [isCreatingFolder, setIsCreatingFolder] = useState(false);
     const [newFolderName, setNewFolderName] = useState<string>("");
     const downloadFilesAsZipAction = useAction(api.fileActions.downloadFilesAsZip);
@@ -165,22 +171,21 @@ export function FileManageTable({ rootFolderId }: { rootFolderId: Id<"folders"> 
         }
     };
 
-    const isFileId = (id: Id<"files"> | Id<"folders">): id is Id<"files"> => {
-        return (id as any).__tableName === "files";
-    };
-
     const handleDeleteSelected = async () => {
         if (selectedFiles.size === 0) {
             toast.info("No files selected for deletion.");
             return;
         }
         const promises = Array.from(selectedFiles).map((id) => {
-            if (isFileId(id)) {
-                return deleteFileMutation({ fileId: id });
+            const thing = filesAndFolders.find(file => file._id === id);
+            if (!thing) {
+                toast.error("File not found");
+                return;
+            }
+            if (thing.type !== "folder") {
+                return deleteFileMutation({ fileId: id as Id<"files"> });
             } else {
-                // TODO: Implement folder deletion
-                console.warn("Folder deletion not yet implemented");
-                return Promise.resolve();
+                return deleteFolderMutation({ folderId: id as Id<"folders"> });
             }
         });
         try {
@@ -194,88 +199,91 @@ export function FileManageTable({ rootFolderId }: { rootFolderId: Id<"folders"> 
     };
 
     const handleDownloadSelected = async () => {
-        if (selectedFiles.size === 0) {
-            toast.info("No files selected for download.");
-            return;
-        }
-        try {
-            const fileIds = Array.from(selectedFiles).filter(isFileId);
-            if (fileIds.length === 0) {
-                toast.info("No files selected (only folders were selected).");
-                return;
-            }
-            const result = await downloadFilesAsZipAction({
-                fileIds
-            }) as { url: string | null; name: string } | undefined;
+        // if (selectedFiles.size === 0) {
+        //     toast.info("No files selected for download.");
+        //     return;
+        // }
+        // try {
+        //     const fileIds = Array.from(selectedFiles).filter(isFileId);
+        //     if (fileIds.length === 0) {
+        //         toast.info("No files selected (only folders were selected).");
+        //         return;
+        //     }
+        //     const result = await downloadFilesAsZipAction({
+        //         fileIds
+        //     }) as { url: string | null; name: string } | undefined;
 
-            if (result && result.url) {
-                const link = document.createElement("a");
-                link.href = result.url;
-                link.download = result.name;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                toast.success("Download started.");
-            } else {
-                toast.error("Could not prepare download. The zip might be empty or an error occurred.");
-            }
-            setSelectedFiles(new Set());
-        } catch (error) {
-            console.error("Failed to download files:", error);
-            toast.error("Failed to download files.");
-        }
+        //     if (result && result.url) {
+        //         const link = document.createElement("a");
+        //         link.href = result.url;
+        //         link.download = result.name;
+        //         document.body.appendChild(link);
+        //         link.click();
+        //         document.body.removeChild(link);
+        //         toast.success("Download started.");
+        //     } else {
+        //         toast.error("Could not prepare download. The zip might be empty or an error occurred.");
+        //     }
+        //     setSelectedFiles(new Set());
+        // } catch (error) {
+        //     console.error("Failed to download files:", error);
+        //     toast.error("Failed to download files.");
+        // }
     };
 
-    const handleStartRename = (fileId: Id<"files"> | Id<"folders">, currentName: string) => {
-        if (!isFileId(fileId)) {
-            toast.info("Renaming folders is not yet supported");
-            return;
-        }
-        setEditingFileId(fileId);
-        setEditingFileName(currentName);
+    const handleStartRename = (fileId: Id<"files"> | Id<"folders">, currentName: string, type: "file" | "folder") => {
+        setRenamingThing({
+            id: fileId,
+            name: currentName,
+            type: type
+        });
     };
 
     const handleSaveRename = async () => {
-        const safeFileName = cleanFileName(editingFileName);
+        if (!renamingThing) {
+            return;
+        }
+        const safeFileName = cleanFileName(renamingThing.name);
         if (!safeFileName || safeFileName.length === 0) {
             toast.error("File name cannot be empty");
             return;
         }
 
-        if (!editingFileId) {
+        if (!renamingThing.id) {
             return;
         }
 
-        const file = filesAndFolders.find(file => file._id === editingFileId);
-        if (!file) {
-            toast.error("File not found");
-            return;
+        if (renamingThing.type !== "folder") {
+            try {
+                await renameFileMutation({
+                    fileId: renamingThing.id as Id<"files">,
+                    newName: safeFileName,
+                });
+                toast.success("File renamed successfully");
+                setRenamingThing(null);
+            } catch (error) {
+                console.error("Failed to rename file:", error);
+                toast.error("Failed to rename file");
+            }
+        }
+        else {
+            try {
+                await renameFolderMutation({
+                    folderId: renamingThing.id as Id<"folders">,
+                    newName: safeFileName,
+                });
+                toast.success("Folder renamed successfully");
+                setRenamingThing(null);
+            } catch (error) {
+                console.error("Failed to rename folder:", error);
+                toast.error("Failed to rename folder");
+            }
         }
 
-        if (safeFileName === file.name) {
-            // same name, do nothing
-            setEditingFileId(null);
-            setEditingFileName("");
-            return;
-        }
-
-        try {
-            await renameFileMutation({
-                fileId: editingFileId,
-                newName: safeFileName,
-            });
-            toast.success("File renamed successfully");
-            setEditingFileId(null);
-            setEditingFileName("");
-        } catch (error) {
-            console.error("Failed to rename file:", error);
-            toast.error("Failed to rename file");
-        }
     };
 
     const handleCancelRename = () => {
-        setEditingFileId(null);
-        setEditingFileName("");
+        setRenamingThing(null);
     };
 
     const handleRenameKeyDown = (e: React.KeyboardEvent) => {
@@ -519,12 +527,12 @@ export function FileManageTable({ rootFolderId }: { rootFolderId: Id<"folders"> 
                                                     />
                                                 </td>
                                                 <td className="px-4 py-1 whitespace-nowrap overflow-hidden text-ellipsis">
-                                                    {editingFileId === file._id ? (
+                                                    {renamingThing?.id === file._id ? (
                                                         <div className="flex items-center gap-2 flex-1">
                                                             <input
                                                                 type="text"
-                                                                value={editingFileName}
-                                                                onChange={(e) => setEditingFileName(e.target.value)}
+                                                                value={renamingThing.name}
+                                                                onChange={(e) => setRenamingThing(prev => prev ? { ...prev, name: e.target.value } : null)}
                                                                 onKeyDown={handleRenameKeyDown}
                                                                 onBlur={handleSaveRename}
                                                                 className="text-sm font-medium text-gray-900 border border-blue-500 rounded px-2 focus:outline-none focus:ring-2 focus:ring-blue-500 flex-1"
@@ -549,7 +557,7 @@ export function FileManageTable({ rootFolderId }: { rootFolderId: Id<"folders"> 
                                                         <div
                                                             className="text-sm font-medium text-gray-900 max-w-xs cursor-pointer hover:text-blue-600"
                                                             title={file.name}
-                                                            onClick={() => handleStartRename(file._id, file.name)}
+                                                            onClick={() => handleStartRename(file._id, file.name, file.type as "file" | "folder")}
                                                         >
                                                             {file.name}
                                                         </div>
@@ -634,12 +642,12 @@ export function FileManageTable({ rootFolderId }: { rootFolderId: Id<"folders"> 
                                             <label className="pr-1">
                                                 <input type="checkbox" checked={selectedFiles.has(file._id)} onChange={(e) => handleFileSelect(file._id, e)} className="form-checkbox h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500 flex-1" />
                                             </label>
-                                            {editingFileId === file._id ? (
+                                            {renamingThing?.id === file._id ? (
                                                 <div className="flex items-center gap-2 flex-1 z-10 bg-white shadow-xl p-4">
                                                     <input
                                                         type="text"
-                                                        value={editingFileName}
-                                                        onChange={(e) => setEditingFileName(e.target.value)}
+                                                        value={renamingThing?.name}
+                                                        onChange={(e) => setRenamingThing(prev => prev ? { ...prev, name: e.target.value } : null)}
                                                         onKeyDown={handleRenameKeyDown}
                                                         onBlur={handleSaveRename}
                                                         className="text-gray-900 border border-blue-500 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 flex-1"
@@ -663,7 +671,7 @@ export function FileManageTable({ rootFolderId }: { rootFolderId: Id<"folders"> 
                                             ) : (
                                                 <h3
                                                     className="text-gray-900 cursor-pointer hover:text-blue-600 break-words break-all"
-                                                    onClick={() => handleStartRename(file._id, file.name)}
+                                                    onClick={() => handleStartRename(file._id, file.name, file.type as "file" | "folder")}
                                                 >
                                                     {file.name}
                                                 </h3>
