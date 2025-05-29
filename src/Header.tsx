@@ -21,17 +21,17 @@ export default function Header({ fileUploadProps }:
                 <Link to="/" className="text-lg sm:text-xl font-semibold text-primary hover:text-primary-hover transition-colors flex-shrink-0">
                     <span className="">Zero Drive</span>
                 </Link>
-                <div className="flex items-center gap-2 sm:gap-4 ml-2">
-                    <Authenticated>
-                        {isMainRoute && (
-                            <div className="hidden sm:block">
-                                <FileUploadArea
-                                    handleUploadFiles={handleUploadFiles}
-                                    uploadingCount={uploadingCount}
-                                    isUploading={isUploading}
-                                />
-                            </div>
-                        )}
+                <Authenticated>
+                    {isMainRoute && (
+                        <div className="hidden sm:block">
+                            <FileUploadArea
+                                handleUploadFiles={handleUploadFiles}
+                                uploadingCount={uploadingCount}
+                                isUploading={isUploading}
+                            />
+                        </div>
+                    )}
+                    <div className="flex items-center">
                         <nav className="flex items-center gap-1 sm:gap-4">
                             <Link
                                 to="/profile"
@@ -52,8 +52,8 @@ export default function Header({ fileUploadProps }:
                         <div className="flex-shrink-0">
                             <SignOutButton />
                         </div>
-                    </Authenticated>
-                </div>
+                    </div>
+                </Authenticated>
             </div>
 
             {/* Mobile file upload row - appears below main header on mobile only */}

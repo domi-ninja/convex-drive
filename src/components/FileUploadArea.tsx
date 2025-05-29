@@ -40,7 +40,7 @@ export function FileUploadArea({
 
     return (
         <div
-            className={`p-6 border-2 ${isDragging ? "border-primary bg-blue-50" : "border-dashed border-gray-500 bg-gray-200"
+            className={`py-2 px-4 border-2 ${isDragging ? "border-primary bg-blue-50" : "border-dashed border-gray-300 bg-gray-100"
                 } rounded-lg transition-all duration-200`}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
