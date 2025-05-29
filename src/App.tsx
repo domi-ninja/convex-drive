@@ -17,6 +17,8 @@ export default function App() {
   const ensureRootFolder = useMutation(api.folders.ensureRootFolder);
 
   const [rootFolderId, setRootFolderId] = useState<Id<"folders"> | null>(null);
+  const [currentFolderId, setCurrentFolderId] = useState<Id<"folders"> | null>(null);
+
   const [isUploading, setIsUploading] = useState(false);
   const [uploadingCount, setUploadingCount] = useState(0);
 
@@ -35,6 +37,7 @@ export default function App() {
       try {
         const folderId = await ensureRootFolder({ userId: user._id });
         setRootFolderId(folderId);
+        setCurrentFolderId(folderId);
       } catch (error) {
         console.error("Failed to ensure root folder:", error);
         toast.error("Failed to initialize folder structure");

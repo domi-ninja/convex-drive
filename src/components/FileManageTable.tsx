@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { api } from "../../convex/_generated/api";
 import { Id } from "../../convex/_generated/dataModel";
+import { FileUploadAreaProps } from "./FileUploadArea";
 
 type SortField = 'name' | 'extension' | 'size' | '_creationTime';
 type SortDirection = 'asc' | 'desc';
@@ -25,7 +26,8 @@ type RenamingThing = {
     name: string;
     type: "file" | "folder";
 }
-export function FileManageTable({ rootFolderId }: { rootFolderId: Id<"folders"> }) {
+export function FileManageTable({ fileUploadProps }: { fileUploadProps: FileUploadAreaProps }) {
+    const rootFolderId = fileUploadProps.rootFolderId;
     const [selectedFiles, setSelectedFiles] = useState<Set<Id<"files"> | Id<"folders">>>(new Set());
     const [sortField, setSortField] = useState<SortField>('_creationTime');
     const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
