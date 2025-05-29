@@ -1,9 +1,9 @@
 "use server";
+import { FileManagerProps } from "../App";
 import { FileManageTable } from "./FileManageTable";
-import { FileUploadAreaProps } from "./FileUploadArea";
 
 
-export function FileManagement({ fileUploadProps }: { fileUploadProps: FileUploadAreaProps }) {
+export function FileManagement({ fileUploadProps }: { fileUploadProps: FileManagerProps }) {
     return (
         <div className="p-8">
             <FileManageTable fileUploadProps={fileUploadProps}></FileManageTable>

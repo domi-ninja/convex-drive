@@ -87,6 +87,31 @@ export const renameFolder = mutation({
   },
 });
 
+export const getFolderPathRec = query({
+  args: { folderId: v.id("folders") },
+  returns: v.array(v.object({
+    _id: v.id("folders"),
+    _creationTime: v.number(),
+    folderId: v.optional(v.id("folders")),
+    name: v.string(),
+    userId: v.id("users"),
+    size: v.number(),
+  })),
+  handler: async (ctx, args): Promise<Array<Folder>> => {
+    const folder = await ctx.db.get(args.folderId);
+    if (!folder) {
+      throw new Error("Folder not found");
+    }
+
+    if (folder.folderId) {
+      const parentPath = await ctx.runQuery(api.folders.getFolderPathRec, { folderId: folder.folderId });
+      return [...parentPath, folder];
+    } else {
+      return [folder];
+    }
+  },
+});
+
 export const getFilesAndFoldersRec = query({
   args: { folderId: v.id("folders") },
   handler: async (ctx, args): Promise<FolderWithFiles> => {

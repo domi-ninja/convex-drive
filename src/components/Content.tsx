@@ -1,10 +1,10 @@
 import { Authenticated, Unauthenticated, useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
+import { FileManagerProps } from "../App";
 import { SignInForm } from "../SignInForm";
 import { FileManagement } from "./FileManagement";
-import { FileUploadAreaProps } from "./FileUploadArea";
 
-export function Content({ fileUploadProps }: { fileUploadProps: FileUploadAreaProps }) {
+export function Content({ fileUploadProps }: { fileUploadProps: FileManagerProps }) {
     const loggedInUser = useQuery(api.auth.loggedInUser);
 
     if (loggedInUser === undefined) {

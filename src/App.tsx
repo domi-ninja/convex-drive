@@ -9,6 +9,16 @@ import { Home } from "./pages/Home";
 import { Profile } from "./pages/Profile";
 import { SignInForm } from "./SignInForm";
 
+export interface FileManagerProps {
+  handleUploadFiles: (files: FileList) => Promise<void>;
+  uploadingCount: number;
+  isUploading: boolean;
+  rootFolderId: Id<"folders">;
+  currentFolderId: Id<"folders">;
+  setCurrentFolderId: (folderId: Id<"folders">) => void;
+}
+
+
 export default function App() {
 
   // All hooks must be called before any conditional returns
@@ -78,10 +88,19 @@ export default function App() {
     return <div>Loading...</div>;
   }
 
+  const fileUploadProps: FileManagerProps = {
+    rootFolderId,
+    currentFolderId: currentFolderId || rootFolderId,
+    handleUploadFiles,
+    uploadingCount,
+    isUploading,
+    setCurrentFolderId
+  };
+
   return (
     <Router>
       <div id="background" className="min-h-screen flex flex-col">
-        <Header fileUploadProps={{ rootFolderId, handleUploadFiles, uploadingCount, isUploading }} />
+        <Header fileUploadProps={fileUploadProps} />
         <main className="">
           <Unauthenticated>
             <div className="flex-1 container mx-auto px-4 py-8 max-w-2xl pt-24">
@@ -90,7 +109,7 @@ export default function App() {
           </Unauthenticated>
           <Authenticated>
             <Routes>
-              <Route path="/" element={<Home fileUploadProps={{ rootFolderId, handleUploadFiles, uploadingCount, isUploading }} />} />
+              <Route path="/" element={<Home fileUploadProps={fileUploadProps} />} />
               <Route path="/profile" element={<Profile />} />
             </Routes>
           </Authenticated>
