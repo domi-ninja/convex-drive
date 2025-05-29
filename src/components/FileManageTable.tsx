@@ -276,15 +276,18 @@ export function FileManageTable({ fileUploadProps }: { fileUploadProps: FileMana
         if (!renamingThing) {
             return;
         }
-        const safeFileName = cleanFileName(renamingThing.name);
-        if (!safeFileName || safeFileName.length === 0) {
-            toast.error("File name cannot be empty");
-            return;
-        }
 
         if (!renamingThing.id) {
             return;
         }
+
+        // TODO do this more methodically everywhere and then also the dupe check and then roll it together
+        // - check for dupe
+        // - keep in mind that file names can collide if ext is different
+        // - check for empty name
+        // - but files without ext can also collid with folders
+        // -fuck 
+        const safeFileName = cleanFileName(renamingThing.name);
 
         if (renamingThing.type !== "folder") {
             try {

@@ -33,13 +33,13 @@ body {
 }
 
 /* Custom toast error styling */
-[data-sonner-toast][data-type="error"] {
+/* [data-sonner-toast][data-type="error"] {
   background-color: #fef2f2 !important;
   border: 1px solid #fca5a5 !important;
   color: #991b1b !important;
-}
+} */
 
-[data-sonner-toast][data-type="error"] [data-icon] {
+/* [data-sonner-toast][data-type="error"] [data-icon] {
   color: #dc2626 !important;
 }
 
@@ -50,7 +50,7 @@ body {
 
 [data-sonner-toast][data-type="error"] [data-description] {
   color: #000 !important;
-}
+} */
 
 /* only use this to update the style of the auth input fields. use a different class for all other input fields */
 .auth-input-field {
