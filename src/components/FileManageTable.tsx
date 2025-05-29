@@ -1,3 +1,4 @@
+import { cleanFileName } from "@/lib/file";
 import { FileWithUrl } from "@/types";
 import { useAction, useMutation } from "convex/react";
 import { useState } from "react";
@@ -9,7 +10,7 @@ type SortField = 'name' | 'type' | 'size' | '_creationTime';
 type SortDirection = 'asc' | 'desc';
 type ViewMode = 'grid' | 'list';
 
-export function FileManageTable({ files }: { files: FileWithUrl[] }) {
+export function FileManageTable({ files, uploadingCount = 0 }: { files: FileWithUrl[]; uploadingCount?: number }) {
     const [selectedFiles, setSelectedFiles] = useState<Set<Id<"files">>>(new Set());
     const [sortField, setSortField] = useState<SortField>('_creationTime');
     const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
@@ -17,7 +18,7 @@ export function FileManageTable({ files }: { files: FileWithUrl[] }) {
     const [lastSelectedIndex, setLastSelectedIndex] = useState<number | null>(null);
     const [editingFileId, setEditingFileId] = useState<Id<"files"> | null>(null);
     const [editingFileName, setEditingFileName] = useState<string>("");
-
+    const [isRenaming, setIsRenaming] = useState(false);
     const deleteFileMutation = useMutation(api.files.deleteFile);
     const renameFileMutation = useMutation(api.files.renameFile);
     const downloadFilesAsZipAction = useAction(api.fileActions.downloadFilesAsZip);
@@ -169,14 +170,27 @@ export function FileManageTable({ files }: { files: FileWithUrl[] }) {
     };
 
     const handleSaveRename = async () => {
-        if (!editingFileId || !editingFileName.trim()) {
+        const safeFileName = cleanFileName(editingFileName);
+        if (!safeFileName || safeFileName.length === 0) {
             toast.error("File name cannot be empty");
             return;
         }
+
+        if (safeFileName === files.find(file => file._id === editingFileId)?.name) {
+            // same name, do nothing
+            setEditingFileId(null);
+            setEditingFileName("");
+            return;
+        }
+
+        if (!editingFileId) {
+            return;
+        }
+
         try {
             await renameFileMutation({
                 fileId: editingFileId,
-                newName: editingFileName.trim()
+                newName: safeFileName,
             });
             toast.success("File renamed successfully");
             setEditingFileId(null);
@@ -214,6 +228,7 @@ export function FileManageTable({ files }: { files: FileWithUrl[] }) {
 
     return (
         <div className="select-none">
+
             {files.length > 0 && (
                 <div className="pt-8">
                     <div className="flex justify-between items-center mb-4">
@@ -339,14 +354,14 @@ export function FileManageTable({ files }: { files: FileWithUrl[] }) {
                                             </td>
                                             <td className="px-4 py-1 whitespace-nowrap">
                                                 {editingFileId === file._id ? (
-                                                    <div className="flex items-center gap-2">
+                                                    <div className="flex items-center gap-2 flex-1">
                                                         <input
                                                             type="text"
                                                             value={editingFileName}
                                                             onChange={(e) => setEditingFileName(e.target.value)}
                                                             onKeyDown={handleRenameKeyDown}
                                                             onBlur={handleSaveRename}
-                                                            className="text-sm font-medium text-gray-900 border border-blue-500 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                            className="text-sm font-medium text-gray-900 border border-blue-500 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 flex-1"
                                                             autoFocus
                                                         />
                                                         <button
@@ -366,7 +381,7 @@ export function FileManageTable({ files }: { files: FileWithUrl[] }) {
                                                     </div>
                                                 ) : (
                                                     <div
-                                                        className="text-sm font-medium text-gray-900 max-w-xs truncate cursor-pointer hover:text-blue-600"
+                                                        className="text-sm font-medium text-gray-900 max-w-xs cursor-pointer hover:text-blue-600"
                                                         title={file.name}
                                                         onClick={() => handleStartRename(file._id, file.name)}
                                                     >
@@ -385,15 +400,15 @@ export function FileManageTable({ files }: { files: FileWithUrl[] }) {
                                             <td className="px-4 py-1 whitespace-nowrap text-sm text-gray-500">
                                                 {formatDate(file._creationTime)}
                                             </td>
-                                            <td className="px-4 py-1 whitespace-nowrap">
+                                            <td className="px-4 whitespace-nowrap">
                                                 {file.url && file.type.startsWith("image/") ? (
                                                     <img
                                                         src={file.url}
                                                         alt={file.name}
-                                                        className="h-12 w-12 object-cover rounded-md border"
+                                                        className="h-8 w-8 object-cover rounded-md border"
                                                     />
                                                 ) : (
-                                                    <div className="h-12 w-12 bg-gray-100 rounded-md flex items-center justify-center">
+                                                    <div className="h-8 w-8 bg-gray-100 rounded-md flex items-center justify-center">
                                                         <span className="text-xs text-gray-500">📄</span>
                                                     </div>
                                                 )}
@@ -404,9 +419,9 @@ export function FileManageTable({ files }: { files: FileWithUrl[] }) {
                             </table>
                         )}
                         {viewMode === "grid" && (
-                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 xl:grid-cols-8 gap-4">
+                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 xl:grid-cols-8 gap-2">
                                 {sortedFiles.map((file) => (
-                                    <div key={file._id} className="bg-white rounded-lg shadow-sm w-full">
+                                    <div key={file._id} className="bg-white rounded-lg border border-gray-200 w-full">
                                         {IsPreviewable(file.type) && file.url ? (
                                             <img src={file.url} alt={file.name} className="h-48 w-48 object-contain" />
                                         ) : (
@@ -416,17 +431,19 @@ export function FileManageTable({ files }: { files: FileWithUrl[] }) {
                                                 <p className="text-sm text-gray-500">{formatDate(file._creationTime)}</p>
                                             </div>
                                         )}
-                                        <div className="flex flex-row gap-2 p-4">
-                                            <input type="checkbox" checked={selectedFiles.has(file._id)} onChange={(e) => handleFileSelect(file._id, e)} className="form-checkbox h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500 mt-2" />
+                                        <div className="flex flex-row gap-2 py-2 w-full flex-wrap text-baseline p-2">
+                                            <label className="pr-1">
+                                                <input type="checkbox" checked={selectedFiles.has(file._id)} onChange={(e) => handleFileSelect(file._id, e)} className="form-checkbox h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500 flex-1" />
+                                            </label>
                                             {editingFileId === file._id ? (
-                                                <div className="flex items-center gap-2 flex-1">
+                                                <div className="flex items-center gap-2 flex-1 z-10 bg-white shadow-xl p-4">
                                                     <input
                                                         type="text"
                                                         value={editingFileName}
                                                         onChange={(e) => setEditingFileName(e.target.value)}
                                                         onKeyDown={handleRenameKeyDown}
                                                         onBlur={handleSaveRename}
-                                                        className="text-lg font-semibold text-gray-900 border border-blue-500 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 flex-1"
+                                                        className="text-gray-900 border border-blue-500 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 flex-1"
                                                         autoFocus
                                                     />
                                                     <button
@@ -446,7 +463,7 @@ export function FileManageTable({ files }: { files: FileWithUrl[] }) {
                                                 </div>
                                             ) : (
                                                 <h3
-                                                    className="text-lg font-semibold text-gray-900 cursor-pointer hover:text-blue-600"
+                                                    className="text-gray-900 cursor-pointer hover:text-blue-600 break-words break-all"
                                                     onClick={() => handleStartRename(file._id, file.name)}
                                                 >
                                                     {file.name}
