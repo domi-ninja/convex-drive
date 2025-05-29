@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { api } from "../../convex/_generated/api";
 import { Id } from "../../convex/_generated/dataModel";
 
-type SortField = 'name' | 'type' | 'size' | '_creationTime';
+type SortField = 'name' | 'extension' | 'size' | '_creationTime';
 type SortDirection = 'asc' | 'desc';
 type ViewMode = 'grid' | 'list';
 
@@ -61,7 +61,7 @@ export function FileManageTable({ files, uploadingCount = 0 }: { files: FileWith
                 aValue = a.name.toLowerCase();
                 bValue = b.name.toLowerCase();
                 break;
-            case 'type':
+            case 'extension':
                 aValue = a.type.toLowerCase();
                 bValue = b.type.toLowerCase();
                 break;
@@ -334,11 +334,11 @@ export function FileManageTable({ files, uploadingCount = 0 }: { files: FileWith
                                             </th>
                                             <th
                                                 className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                                                onClick={() => handleSort('type')}
+                                                onClick={() => handleSort('extension')}
                                             >
                                                 <div className="flex items-center gap-1">
                                                     Type
-                                                    <SortIcon field="type" />
+                                                    <SortIcon field="extension" />
                                                 </div>
                                             </th>
                                             <th
@@ -378,7 +378,7 @@ export function FileManageTable({ files, uploadingCount = 0 }: { files: FileWith
                                                         className="form-checkbox h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
                                                     />
                                                 </td>
-                                                <td className="px-4 py-1 whitespace-nowrap">
+                                                <td className="px-4 py-1 whitespace-nowrap overflow-hidden text-ellipsis">
                                                     {editingFileId === file._id ? (
                                                         <div className="flex items-center gap-2 flex-1">
                                                             <input
@@ -387,7 +387,7 @@ export function FileManageTable({ files, uploadingCount = 0 }: { files: FileWith
                                                                 onChange={(e) => setEditingFileName(e.target.value)}
                                                                 onKeyDown={handleRenameKeyDown}
                                                                 onBlur={handleSaveRename}
-                                                                className="text-sm font-medium text-gray-900 border border-blue-500 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 flex-1"
+                                                                className="text-sm font-medium text-gray-900 border border-blue-500 rounded px-2 focus:outline-none focus:ring-2 focus:ring-blue-500 flex-1"
                                                                 autoFocus
                                                             />
                                                             <button
@@ -417,7 +417,7 @@ export function FileManageTable({ files, uploadingCount = 0 }: { files: FileWith
                                                 </td>
                                                 <td className="px-4 py-1 whitespace-nowrap">
                                                     <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
-                                                        {file.type}
+                                                        {file.extension}
                                                     </span>
                                                 </td>
                                                 <td className="px-4 py-1 whitespace-nowrap text-sm text-gray-500">
