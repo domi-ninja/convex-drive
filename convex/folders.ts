@@ -10,6 +10,28 @@ import { api } from "./_generated/api";
 import { Doc, Id } from "./_generated/dataModel";
 import { FileWithUrl } from "./files";
 
+async function ensureUniqueName(name: string, existingFiles: Array<Doc<"folders">>): Promise<string> {
+
+  let newName = name;
+  let safeguard = 0;
+
+  while (safeguard < 1000 && existingFiles.find((folder) => folder.name === newName) !== undefined) {
+    const countDupes = existingFiles.filter(f => {
+      // replace _123 from end with nothing
+      const match = f.name.match(/_(\d+)$/);
+      if (match) {
+        return true;
+      }
+      return false;
+    }).length + 1;
+    newName = name + "_" + countDupes;
+    safeguard++;
+  }
+
+  return newName;
+}
+
+
 export const saveFolder = mutation({
   args: {
     name: v.string(),
@@ -22,8 +44,15 @@ export const saveFolder = mutation({
     if (!userId) {
       throw new Error("User not authenticated");
     }
+
+    const existingFolders = await ctx.db
+      .query("folders")
+      .withIndex("by_folderId", (q) => q.eq("folderId", args.folderId))
+      .collect();
+    const name = await ensureUniqueName(args.name, existingFolders);
+
     return await ctx.db.insert("folders", {
-      name: args.name,
+      name: name,
       userId,
       size: args.size,
       folderId: args.folderId,

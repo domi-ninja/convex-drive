@@ -8,6 +8,27 @@ import {
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { Doc } from "./_generated/dataModel";
 
+async function ensureUniqueName(name: string, existingFiles: Array<Doc<"files">>): Promise<string> {
+
+  let newName = name;
+  let safeguard = 0;
+
+  while (safeguard < 1000 && existingFiles.find((file) => file.name === newName) !== undefined) {
+    const countDupes = existingFiles.filter(f => {
+      // replace _123 from end with nothing
+      const match = f.name.match(/_(\d+)$/);
+      if (match) {
+        return true;
+      }
+      return false;
+    }).length + 1;
+    newName = name + "_" + countDupes;
+    safeguard++;
+  }
+
+  return newName;
+}
+
 export const saveFile = mutation({
   args: {
     storageId: v.id("_storage"),
@@ -23,9 +44,16 @@ export const saveFile = mutation({
     if (!userId) {
       throw new Error("User not authenticated");
     }
+
+    const existingFiles = await ctx.db
+      .query("files")
+      .withIndex("by_folderId", (q) => q.eq("folderId", args.folderId))
+      .collect();
+    const name = await ensureUniqueName(args.name, existingFiles);
+
     await ctx.db.insert("files", {
       storageId: args.storageId,
-      name: args.name,
+      name: name,
       type: args.type,
       userId,
       size: args.size,
