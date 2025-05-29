@@ -18,7 +18,7 @@ async function ensureUniqueName(name: string, existingFiles: Array<Doc<"folders"
   while (safeguard < 1000 && existingFiles.find((folder) => folder.name === newName) !== undefined) {
     const countDupes = existingFiles.filter(f => {
       // replace _123 from end with nothing
-      const match = f.name.match(/_(\d+)$/);
+      const match = f.name.match(new RegExp(`${name}_(\\d+)$`));
       if (match) {
         return true;
       }
