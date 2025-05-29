@@ -44,7 +44,11 @@ export function FileManagement({ fileUploadProps }: { fileUploadProps: FileUploa
     }, [user?._id, ensureRootFolder]);
 
     if (!user?._id) {
-        return <div>Please log in</div>;
+        return (
+            <div className="flex justify-center items-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+        );
     }
 
 

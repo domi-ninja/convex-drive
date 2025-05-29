@@ -44,10 +44,6 @@ export default function App() {
     initRootFolder();
   }, [user?._id, ensureRootFolder]);
 
-  if (!user?._id) {
-    return <div>Please log in</div>;
-  }
-
 
   const handleUploadFiles = async (files: FileList) => {
     if (!rootFolderId) {

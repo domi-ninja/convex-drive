@@ -1,5 +1,5 @@
 import { Authenticated, useQuery } from "convex/react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { api } from "../convex/_generated/api";
 import { SignOutButton } from "./SignOutButton";
 import { FileUploadArea } from "./components";
@@ -9,6 +9,8 @@ export default function Header({ fileUploadProps }:
     { fileUploadProps: FileUploadAreaProps }) {
 
     const { handleUploadFiles, uploadingCount, isUploading } = fileUploadProps;
+    const location = useLocation();
+    const isMainRoute = location.pathname === "/";
 
     const loggedInUser = useQuery(api.auth.loggedInUser);
 
@@ -21,13 +23,15 @@ export default function Header({ fileUploadProps }:
                 </Link>
                 <div className="flex items-center gap-2 sm:gap-4 ml-2">
                     <Authenticated>
-                        <div className="hidden sm:block">
-                            <FileUploadArea
-                                handleUploadFiles={handleUploadFiles}
-                                uploadingCount={uploadingCount}
-                                isUploading={isUploading}
-                            />
-                        </div>
+                        {isMainRoute && (
+                            <div className="hidden sm:block">
+                                <FileUploadArea
+                                    handleUploadFiles={handleUploadFiles}
+                                    uploadingCount={uploadingCount}
+                                    isUploading={isUploading}
+                                />
+                            </div>
+                        )}
                         <nav className="flex items-center gap-1 sm:gap-4">
                             <Link
                                 to="/profile"
@@ -54,13 +58,15 @@ export default function Header({ fileUploadProps }:
 
             {/* Mobile file upload row - appears below main header on mobile only */}
             <Authenticated>
-                <div className="sm:hidden px-3 pb-3 pt-1 border-t border-gray-100">
-                    <FileUploadArea
-                        handleUploadFiles={handleUploadFiles}
-                        uploadingCount={uploadingCount}
-                        isUploading={isUploading}
-                    />
-                </div>
+                {isMainRoute && (
+                    <div className="sm:hidden px-3 pb-3 pt-1 border-t border-gray-100">
+                        <FileUploadArea
+                            handleUploadFiles={handleUploadFiles}
+                            uploadingCount={uploadingCount}
+                            isUploading={isUploading}
+                        />
+                    </div>
+                )}
             </Authenticated>
         </header>
     );

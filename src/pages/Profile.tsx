@@ -14,10 +14,10 @@ export function Profile() {
 
     return (
         <Authenticated>
-            <div className="max-w-2xl mx-auto">
+            <div className="max-w-2xl mx-auto pt-8">
                 <div className="bg-white rounded-lg shadow-sm border p-6">
                     <h1 className="text-2xl font-bold text-gray-900 mb-6">Profile</h1>
-                    {JSON.stringify(loggedInUser)}
+                    {/* {JSON.stringify(loggedInUser)} */}
                     <div className="space-y-6">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
