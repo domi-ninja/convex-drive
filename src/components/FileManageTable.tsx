@@ -516,6 +516,18 @@ export function FileManageTable({ fileUploadProps }: { fileUploadProps: FileMana
                     </div>
 
                     <div className="hidden md:flex justify-end gap-2">
+                        <button className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm" onClick={handleCreateFolder} >
+
+                            <div>
+                                {/* <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 inline-block">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 10.5v6m3-3H9m4.06-7.19l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z" />
+                                </svg> */}
+                                <span>
+                                    New Folder
+                                </span>
+                            </div>
+
+                        </button>
                         <button
                             onClick={handleDownloadSelected}
                             disabled={selectedFiles.size === 0}
@@ -595,6 +607,39 @@ export function FileManageTable({ fileUploadProps }: { fileUploadProps: FileMana
                                     </tr>
                                 </thead>
                                 <tbody className="bg-white divide-y divide-gray-200">
+                                    {(isCreatingFolder && (
+                                        <tr className="">
+                                            <td></td>
+
+                                            <td colSpan={2} className="px-4 py-1 whitespace-nowrap">
+                                                <div className="flex items-center gap-2 flex-1">
+                                                    <input
+                                                        type="text"
+                                                        value={newFolderName}
+                                                        onChange={(e) => setNewFolderName(e.target.value)}
+                                                        onBlur={handleCancelCreateFolder}
+                                                        onKeyDown={handleCreateFolderKeyDown}
+                                                        className="text-sm font-medium text-gray-900 border border-blue-500 rounded px-2 focus:outline-none focus:ring-2 focus:ring-blue-500 flex-1"
+                                                        autoFocus
+                                                    />
+                                                    <button
+                                                        onClick={handleSaveRename}
+                                                        className="text-green-600 hover:text-green-800"
+                                                        title="Save"
+                                                    >
+                                                        ✓
+                                                    </button>
+                                                    <button
+                                                        onClick={handleCancelRename}
+                                                        className="text-red-600 hover:text-red-800"
+                                                        title="Cancel"
+                                                    >
+                                                        ✕
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
                                     {sortedFiles.map((file) => (
                                         <tr
                                             key={file._id}
@@ -773,7 +818,7 @@ export function FileManageTable({ fileUploadProps }: { fileUploadProps: FileMana
                         </div>
                     )}
                 </div>
-            </div>
+            </div >
         </div >
     );
 }
