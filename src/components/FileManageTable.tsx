@@ -24,6 +24,7 @@ export function FileManageTable({ files }: { files: FileWithUrl[] }) {
     const [isCreatingFolder, setIsCreatingFolder] = useState(false);
     const [newFolderName, setNewFolderName] = useState<string>("");
     const downloadFilesAsZipAction = useAction(api.fileActions.downloadFilesAsZip);
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
 
     const formatFileSize = (bytes: number) => {
         if (bytes === 0) return '0 Bytes';
@@ -256,8 +257,8 @@ export function FileManageTable({ files }: { files: FileWithUrl[] }) {
 
             {files.length > 0 && (
                 <div className="pt-8">
-                    <div className="grid grid-cols-3 items-center mb-4">
-                        <h2 className={`text-2xl font-semibold cursor-pointer p-2 ${selectedFiles.size > 0 ? "bg-gray-200 rounded-md w-fit" : ""}`} onClick={() => setSelectedFiles(new Set())}>
+                    <div className="grid grid-cols-2 md:grid-cols-3 items-center mb-4 gap-4">
+                        <h2 className={`text-2xl font-semibold cursor-pointer p-2  ${selectedFiles.size > 0 ? "bg-gray-200 rounded-md w-fit" : ""}`} onClick={() => setSelectedFiles(new Set())}>
                             {selectedFiles.size > 0 ? (<div>{selectedFiles.size} Files Selected
                                 <span>
                                     <button
@@ -275,40 +276,93 @@ export function FileManageTable({ files }: { files: FileWithUrl[] }) {
                             </div>) : "Your Files"}
                         </h2>
 
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 justify-center lg:justify-center">
                             <div onClick={() => setViewMode("grid")} className={`flex items-center gap-2 cursor-pointer p-4 rounded-md ${viewMode === "grid" ? "bg-gray-200" : ""}`}>
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 4.75h6.5v6.5h-6.5v-6.5zM13.75 4.75h6.5v6.5h-6.5v-6.5zM3.75 13.75h6.5v6.5h-6.5v-6.5zM13.75 13.75h6.5v6.5h-6.5v-6.5z" />
                                 </svg>
 
-                                <span>Grid</span>
+                                <span className="hidden sm:inline">Grid</span>
                             </div>
                             <div onClick={() => setViewMode("list")} className={`flex items-center gap-2 cursor-pointer p-4 rounded-md ${viewMode === "list" ? "bg-gray-200" : ""}`}>
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
                                 </svg>
 
-                                <span>List</span>
+                                <span className="hidden sm:inline">List</span>
+                            </div>
+
+                            <div className="flex justify-end gap-2 md:hidden">
+                                <div className="relative">
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setIsMenuOpen(!isMenuOpen);
+                                        }}
+                                        className="p-2 rounded-md hover:bg-gray-100"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 12.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 18.75a.75.75 0 110-1.5.75.75 0 010 1.5z" />
+                                        </svg>
+                                    </button>
+                                    {isMenuOpen && (
+                                        <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 border border-gray-200">
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleDownloadSelected();
+                                                    setIsMenuOpen(false);
+                                                }}
+                                                disabled={selectedFiles.size === 0}
+                                                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                                            >
+                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-5">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                                                </svg>
+                                                Download
+                                            </button>
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleDeleteSelected();
+                                                    setIsMenuOpen(false);
+                                                }}
+                                                disabled={selectedFiles.size === 0}
+                                                className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                                            >
+                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-5">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                                                </svg>
+                                                Delete
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </div>
 
-                        <div className="flex justify-end gap-2">
+                        <div className="hidden md:flex justify-end gap-2">
                             <button
                                 onClick={handleDownloadSelected}
                                 disabled={selectedFiles.size === 0}
                                 className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
                             >
-                                Download Selected
+                                Download
                             </button>
                             <button
                                 onClick={handleDeleteSelected}
                                 disabled={selectedFiles.size === 0}
                                 className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
                             >
-                                Delete Selected
+                                Delete
                             </button>
                         </div>
+
+
+
                     </div>
+
+
                     <div className="overflow-x-auto">
                         {viewMode === "list" && (
                             <div>
