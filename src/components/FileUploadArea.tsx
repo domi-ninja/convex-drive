@@ -1,15 +1,16 @@
 import React, { useCallback, useState } from "react";
 
 interface FileUploadAreaProps {
-    onUpload: (files: FileList) => Promise<void>;
+    handleUploadFiles: (files: FileList) => Promise<void>;
+    uploadingCount: number;
+    isUploading: boolean;
 }
 
 export function FileUploadArea({
-    onUpload,
+    handleUploadFiles, uploadingCount, isUploading,
 }: FileUploadAreaProps) {
 
     const [isDragging, setIsDragging] = useState(false);
-
     const handleDragOver = useCallback((event: React.DragEvent<HTMLDivElement>) => {
         event.preventDefault();
         event.stopPropagation();
@@ -28,14 +29,10 @@ export function FileUploadArea({
             event.stopPropagation();
             setIsDragging(false);
             const droppedFiles = event.dataTransfer.files;
-            console.log(event.dataTransfer);
-            return;
-            if (droppedFiles && droppedFiles.length > 0) {
-                await onUpload(droppedFiles);
-                event.dataTransfer.clearData();
-            }
+            await handleUploadFiles(droppedFiles);
+            event.dataTransfer.clearData();
         },
-        [setIsDragging, onUpload]
+        [setIsDragging, handleUploadFiles]
     );
 
     return (
@@ -46,29 +43,31 @@ export function FileUploadArea({
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
         >
-            <div className="flex justify-center flex-row items-center flex-wrap gap-4">
-                <input
-                    type="file"
-                    multiple
-                    onChange={(e) => e.target.files && onUpload(e.target.files)}
-                    className="hidden"
-                    id="file-upload-input"
-                />
-                <label
-                    htmlFor="file-upload-input"
-                    className="p-4 bg-primary text-white rounded-md hover:bg-primary-hover cursor-pointer shadow-sm"
-                >
-                    Upload Files
-                </label>
-                {/* <div className="flex items-center my-4 w-full max-w-20">
-                    <div className="flex-1 h-px bg-gray-300"></div>
-                    <span className="px-3 text-gray-500 text-sm">or</span>
-                    <div className="flex-1 h-px bg-gray-300"></div>
-                </div> */}
-                <span className={isDragging ? "text-primary" : "text-gray-500"}>
-                    Drop folders here to upload
-                </span>
-            </div>
+            {isUploading ? (
+                <div className="flex justify-center items-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+                    <span className="ml-2">Uploading {uploadingCount} files</span>
+                </div>
+            ) : (
+                <div className="flex justify-center flex-row items-center flex-wrap gap-4">
+                    <input
+                        type="file"
+                        multiple
+                        onChange={(e) => e.target.files && handleUploadFiles(e.target.files)}
+                        className="hidden"
+                        id="file-upload-input"
+                    />
+                    <label
+                        htmlFor="file-upload-input"
+                        className="p-4 bg-primary text-white rounded-md hover:bg-primary-hover cursor-pointer shadow-sm"
+                    >
+                        Upload Files
+                    </label>
+                    <span className={isDragging ? "text-primary" : "text-gray-500"}>
+                        Drop folders here to upload
+                    </span>
+                </div>
+            )}
         </div>
     );
 } 
