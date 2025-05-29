@@ -338,12 +338,15 @@ export function FileManageTable({ fileUploadProps }: { fileUploadProps: FileMana
     const handleFinishCreateFolder = async () => {
 
         const folderId = await saveFolderMutation({
-            folderId: rootFolderId,
+            folderId: currentFolderId,
             name: cleanFileName(newFolderName),
             type: "folder",
             size: 0,
         });
 
+        //setCurrentFolderId(folderId as Id<"folders">);
+        setIsCreatingFolder(false);
+        setNewFolderName("");
     };
 
     const handleCreateFolderKeyDown = (e: React.KeyboardEvent) => {
@@ -378,14 +381,20 @@ export function FileManageTable({ fileUploadProps }: { fileUploadProps: FileMana
                             </span>
                         </div>) :
                             (currentFolderId === rootFolderId ?
-                                (<span>Your Files</span>)
+                                (<span>
+                                    <span className="pr-2">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6 inline-block">
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-8.69-6.44l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z" />
+                                        </svg>
+                                    </span>
+                                    Your Files</span>)
                                 :
                                 (<span>
                                     {currentFolderPath?.map((folder, fidx) => (
                                         <span key={folder._id}>
                                             <span className="hover:text-blue-600 cursor-pointer" onClick={() => setCurrentFolderId(folder._id)}>
                                                 {(folder._id === rootFolderId ? (
-                                                    <span className="pr-2">
+                                                    <span>
                                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6 inline-block">
                                                             <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-8.69-6.44l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z" />
                                                         </svg>
@@ -548,7 +557,7 @@ export function FileManageTable({ fileUploadProps }: { fileUploadProps: FileMana
                                             onClick={() => handleSort('_creationTime')}
                                         >
                                             <div className="flex items-center gap-1">
-                                                Upload Date
+                                                Created Date
                                                 <SortIcon field="_creationTime" />
                                             </div>
                                         </th>

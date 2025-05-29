@@ -62,7 +62,7 @@ export default function App() {
     if (!rootFolderId) {
       throw new Error("Root folder not found");
     };
-    const fileRecs = getFrontendFilesForUploadRec(rootFolderId, Array.from(files));
+    const fileRecs = getFrontendFilesForUploadRec(currentFolderId || rootFolderId, Array.from(files));
 
     Promise.all(Array.from(fileRecs).map(async (file) => {
       const newFileUrl = await generateUploadUrl();
@@ -76,8 +76,12 @@ export default function App() {
       setIsUploading(true);
       await saveFile({
         storageId, name:
-          file.name, type: file.type, size: file.size,
-        folderId: rootFolderId, extension: file.extension, isFolder: false
+          file.name,
+        type: file.type,
+        size: file.size,
+        folderId: currentFolderId || rootFolderId,
+        extension: file.extension,
+        isFolder: false
       });
       setUploadingCount(prev => prev - 1);
       setIsUploading(false);
