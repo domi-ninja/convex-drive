@@ -11,6 +11,11 @@ type SortField = 'name' | 'extension' | 'size' | '_creationTime';
 type SortDirection = 'asc' | 'desc';
 type ViewMode = 'grid' | 'list';
 
+type SortCriteria = {
+    field: SortField;
+    direction: SortDirection;
+};
+
 type FileOrFolder = {
     name: string;
     type?: string;
@@ -26,11 +31,11 @@ type RenamingThing = {
     name: string;
     type: "file" | "folder";
 }
+
 export function FileManageTable({ fileUploadProps }: { fileUploadProps: FileManagerProps }) {
     const rootFolderId = fileUploadProps.rootFolderId;
     const [selectedFiles, setSelectedFiles] = useState<Set<Id<"files"> | Id<"folders">>>(new Set());
-    const [sortField, setSortField] = useState<SortField>('_creationTime');
-    const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+    const [sortCriteria, setSortCriteria] = useState<SortCriteria[]>([{ field: 'extension', direction: 'asc' }, { field: '_creationTime', direction: 'desc' }]);
     const [viewMode, setViewMode] = useState<ViewMode>('list');
     const [lastSelectedIndex, setLastSelectedIndex] = useState<number | null>(null);
     const [renamingThing, setRenamingThing] = useState<RenamingThing | null>(null);
@@ -68,11 +73,22 @@ export function FileManageTable({ fileUploadProps }: { fileUploadProps: FileMana
     };
 
     const handleSort = (field: SortField) => {
-        if (sortField === field) {
-            setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+        const existingCriteriaIndex = sortCriteria.findIndex(c => c.field === field);
+
+        if (existingCriteriaIndex !== -1) {
+            // Field already exists in sort criteria
+            const existingCriteria = sortCriteria[existingCriteriaIndex];
+            const newDirection: SortDirection = existingCriteria.direction === 'asc' ? 'desc' : 'asc';
+
+            // Remove the existing criteria and add it to the front with toggled direction
+            const newCriteria: SortCriteria[] = [
+                { field, direction: newDirection },
+                ...sortCriteria.filter(c => c.field !== field)
+            ];
+            setSortCriteria(newCriteria);
         } else {
-            setSortField(field);
-            setSortDirection('asc');
+            // Field doesn't exist, add it to the front
+            setSortCriteria(prev => [{ field, direction: 'asc' }, ...prev]);
         }
     };
 
@@ -114,29 +130,31 @@ export function FileManageTable({ fileUploadProps }: { fileUploadProps: FileMana
         let aValue: string | number;
         let bValue: string | number;
 
-        switch (sortField) {
-            case 'name':
-                aValue = a.name.toLowerCase();
-                bValue = b.name.toLowerCase();
-                break;
-            case 'extension':
-                aValue = a.extension?.toLowerCase() || "";
-                bValue = b.extension?.toLowerCase() || "";
-                break;
-            case 'size':
-                aValue = a.size || 0;
-                bValue = b.size || 0;
-                break;
-            case '_creationTime':
-                aValue = a._creationTime;
-                bValue = b._creationTime;
-                break;
-            default:
-                return 0;
-        }
+        for (const { field, direction } of sortCriteria) {
+            switch (field) {
+                case 'name':
+                    aValue = a.name.toLowerCase();
+                    bValue = b.name.toLowerCase();
+                    break;
+                case 'extension':
+                    aValue = a.extension?.toLowerCase() || "";
+                    bValue = b.extension?.toLowerCase() || "";
+                    break;
+                case 'size':
+                    aValue = a.size || 0;
+                    bValue = b.size || 0;
+                    break;
+                case '_creationTime':
+                    aValue = a._creationTime;
+                    bValue = b._creationTime;
+                    break;
+                default:
+                    return 0;
+            }
 
-        if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
-        if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+            if (aValue < bValue) return direction === 'asc' ? -1 : 1;
+            if (aValue > bValue) return direction === 'asc' ? 1 : -1;
+        }
         return 0;
     });
 
@@ -310,10 +328,19 @@ export function FileManageTable({ fileUploadProps }: { fileUploadProps: FileMana
     };
 
     const SortIcon = ({ field }: { field: SortField }) => {
-        if (sortField !== field) {
+        const sortIndex = sortCriteria.findIndex(c => c.field === field);
+        if (sortIndex === -1) {
             return <span className="text-gray-400">↕</span>;
         }
-        return sortDirection === 'asc' ? <span className="text-blue-600">↑</span> : <span className="text-blue-600">↓</span>;
+        const sort = sortCriteria[sortIndex];
+        const priorityNumber = sortCriteria.length > 1 ? sortIndex + 1 : '';
+        const arrow = sort.direction === 'asc' ? '↑' : '↓';
+        return (
+            <span className="text-blue-600 flex items-center gap-1">
+                {arrow}
+                {priorityNumber && <span className="text-xs bg-blue-100 rounded-full w-4 h-4 flex items-center justify-center">{priorityNumber}</span>}
+            </span>
+        );
     };
 
     const IsPreviewable = (type?: string | null) => {
@@ -361,8 +388,9 @@ export function FileManageTable({ fileUploadProps }: { fileUploadProps: FileMana
     const currentFolderPath = useQuery(api.folders.getFolderPathRec, { folderId: currentFolderId });
 
     return (
-        <div className="select-none">
-            <div className="pt-8">
+        <div>
+            {/* className="select-none" */}
+            <div className="">
                 <div className="grid grid-cols-2 md:grid-cols-3 items-center mb-4 gap-4">
                     <h2 className={`text-2xl font-semibold cursor-pointer p-2  ${selectedFiles.size > 0 ? "bg-gray-200 rounded-md w-fit" : ""}`} onClick={() => setSelectedFiles(new Set())}>
                         {selectedFiles.size > 0 ? (<div>{selectedFiles.size} Files Selected
@@ -662,36 +690,7 @@ export function FileManageTable({ fileUploadProps }: { fileUploadProps: FileMana
                                     ))}
                                 </tbody>
                             </table>
-                            <div
-                                onClick={() => !isCreatingFolder && handleCreateFolder()}
-                                className="w-fit bg-gray-100 rounded-lg border border-gray-200 p-2 flex items-center gap-2 cursor-pointer hover:bg-gray-200 mt-4 min-w-64"
-                            >
-                                <div className="flex items-center gap-2 w-full">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 text-gray-500 flex-shrink-0">
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 10.5v6m3-3H9m4.06-7.19l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z" />
-                                    </svg>
-                                    {isCreatingFolder ? (
-                                        <input
-                                            type="text"
-                                            id="new-folder-name"
-                                            value={newFolderName}
-                                            onChange={(e) => setNewFolderName(e.target.value)}
-                                            onBlur={handleCancelCreateFolder}
-                                            onKeyDown={handleCreateFolderKeyDown}
-                                            className="text-gray-900 border border-blue-500 rounded px-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm flex-1"
-                                            placeholder="Enter folder name"
-                                            autoFocus
-                                        />
-                                    ) : (
-                                        <>
-                                            <span className=" text-sm text-gray-500">
-                                                Create Folder
-                                            </span>
-                                        </>
-                                    )}
-                                </div>
 
-                            </div>
                         </div>
                     )}
                     {viewMode === "grid" && (
