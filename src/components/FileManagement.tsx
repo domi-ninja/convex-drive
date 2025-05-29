@@ -1,5 +1,4 @@
 "use server";
-import { FileWithUrl } from "@/types";
 import { useMutation, useQuery } from "convex/react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -7,6 +6,7 @@ import { api } from "../../convex/_generated/api";
 import { Id } from "../../convex/_generated/dataModel";
 import { FileManageTable } from "./FileManageTable";
 import { FileUploadAreaProps } from "./FileUploadArea";
+import { FileWithUrl } from "../../convex/files";
 
 
 export function FileManagement({ fileUploadProps }: { fileUploadProps: FileUploadAreaProps }) {

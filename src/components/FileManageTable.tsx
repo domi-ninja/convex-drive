@@ -1,10 +1,10 @@
 import { cleanFileName } from "@/lib/file";
-import { FileWithUrl } from "@/types";
 import { useAction, useMutation } from "convex/react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { api } from "../../convex/_generated/api";
 import { Id } from "../../convex/_generated/dataModel";
+import { FileWithUrl } from "../../convex/files";
 
 type SortField = 'name' | 'extension' | 'size' | '_creationTime';
 type SortDirection = 'asc' | 'desc';
