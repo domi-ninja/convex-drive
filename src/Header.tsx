@@ -8,7 +8,6 @@ import { FileUploadAreaProps } from "./components/FileUploadArea";
 export default function Header({ fileUploadProps }:
     { fileUploadProps: FileUploadAreaProps }) {
 
-    const { handleUploadFiles, uploadingCount, isUploading } = fileUploadProps;
     const location = useLocation();
     const isMainRoute = location.pathname === "/";
 
@@ -24,10 +23,7 @@ export default function Header({ fileUploadProps }:
                 <Authenticated>
                     {isMainRoute && (
                         <div className="hidden sm:block">
-                            <FileUploadArea
-                                handleUploadFiles={handleUploadFiles}
-                                uploadingCount={uploadingCount}
-                                isUploading={isUploading}
+                            <FileUploadArea fileUploadProps={fileUploadProps}
                             />
                         </div>
                     )}
@@ -60,11 +56,7 @@ export default function Header({ fileUploadProps }:
             <Authenticated>
                 {isMainRoute && (
                     <div className="sm:hidden px-3 pb-3 pt-1 border-t border-gray-100">
-                        <FileUploadArea
-                            handleUploadFiles={handleUploadFiles}
-                            uploadingCount={uploadingCount}
-                            isUploading={isUploading}
-                        />
+                        <FileUploadArea fileUploadProps={fileUploadProps} />
                     </div>
                 )}
             </Authenticated>

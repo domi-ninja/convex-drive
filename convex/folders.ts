@@ -6,29 +6,35 @@ import {
 } from "./_generated/server";
 // Removed "use node" and JSZip import as actions are moved
 import { getAuthUserId } from "@convex-dev/auth/server";
+import { api } from "./_generated/api";
 import { Doc, Id } from "./_generated/dataModel";
+import { FileWithUrl } from "./files";
 
 export const saveFolder = mutation({
   args: {
-    storageId: v.id("_storage"),
     name: v.string(),
     type: v.string(),
     size: v.number(),
     folderId: v.optional(v.id("folders")),
   },
-  handler: async (ctx, args): Promise<void> => {
+  handler: async (ctx, args): Promise<Id<"folders">> => {
     const userId = await getAuthUserId(ctx);
     if (!userId) {
       throw new Error("User not authenticated");
     }
-    await ctx.db.insert("folders", {
+    return await ctx.db.insert("folders", {
       name: args.name,
       userId,
       size: args.size,
-      folderId: args.folderId || null as any,
+      folderId: args.folderId,
     });
   },
 });
+
+export interface FolderWithFiles extends Folder {
+  files: Array<FileWithUrl>;
+  folders: Array<FolderWithFiles>;
+}
 
 export type Folder = Doc<"folders">;// & { url: string | null };
 
@@ -40,6 +46,60 @@ export const getFolder = query({
       throw new Error("Folder not found");
     }
     return folder;
+  },
+});
+
+export const listFoldersInFolder = query({
+  args: { folderId: v.id("folders") },
+  handler: async (ctx, args): Promise<Array<Folder>> => {
+    const folders = await ctx.db
+      .query("folders")
+      .withIndex("by_folderId", (q) => q.eq("folderId", args.folderId))
+      .order("desc")
+      .collect();
+
+    return Promise.all(
+      folders.map(async (folder) => ({
+        ...folder,
+      }))
+    );
+  },
+});
+
+export const getFilesAndFoldersRec = query({
+  args: { folderId: v.id("folders") },
+  handler: async (ctx, args): Promise<FolderWithFiles> => {
+    const parentFolderId = args.folderId;
+
+    const rawFiles = await ctx.db
+      .query("files")
+      .withIndex("by_folderId", (q) => q.eq("folderId", parentFolderId))
+      .collect();
+
+    const files = await Promise.all(rawFiles.map(async (file) => ({
+      ...file,
+      url: await ctx.storage.getUrl(file.storageId),
+    })));
+
+    const folders = await ctx.db
+      .query("folders")
+      .withIndex("by_folderId", (q) => q.eq("folderId", parentFolderId))
+      .collect();
+
+    const foldersWithSubfilesAndFolders = await Promise.all(folders.map(async (folder) => {
+      return await ctx.runQuery(api.folders.getFilesAndFoldersRec, { folderId: folder._id });
+    }));
+
+    const folder = await ctx.db.get(parentFolderId);
+    if (!folder) {
+      throw new Error("Folder not found in getFilesAndFoldersRec, this should not happen");
+    }
+
+    return {
+      ...folder,
+      files,
+      folders: foldersWithSubfilesAndFolders,
+    };
   },
 });
 

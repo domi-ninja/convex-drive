@@ -1,16 +1,16 @@
 import React, { useCallback, useState } from "react";
+import { Id } from "../../convex/_generated/dataModel";
 
 export interface FileUploadAreaProps {
     handleUploadFiles: (files: FileList) => Promise<void>;
     uploadingCount: number;
     isUploading: boolean;
+    rootFolderId: Id<"folders">;
 }
 
-export function FileUploadArea({
-    handleUploadFiles,
-    uploadingCount,
-    isUploading
-}: FileUploadAreaProps) {
+export function FileUploadArea({ fileUploadProps }: { fileUploadProps: FileUploadAreaProps }) {
+
+    const { handleUploadFiles, uploadingCount, isUploading, rootFolderId } = fileUploadProps;
 
 
     const [isDragging, setIsDragging] = useState(false);

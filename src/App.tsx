@@ -71,10 +71,14 @@ export default function App() {
     }));
   };
 
+  if (!rootFolderId) {
+    return <div>Loading...</div>;
+  }
+
   return (
     <Router>
       <div id="background" className="min-h-screen flex flex-col">
-        <Header fileUploadProps={{ handleUploadFiles, uploadingCount, isUploading }} />
+        <Header fileUploadProps={{ rootFolderId, handleUploadFiles, uploadingCount, isUploading }} />
         <main className="">
           <Unauthenticated>
             <div className="flex-1 container mx-auto px-4 py-8 max-w-2xl pt-24">
@@ -83,7 +87,7 @@ export default function App() {
           </Unauthenticated>
           <Authenticated>
             <Routes>
-              <Route path="/" element={<Home fileUploadProps={{ handleUploadFiles, uploadingCount, isUploading }} />} />
+              <Route path="/" element={<Home fileUploadProps={{ rootFolderId, handleUploadFiles, uploadingCount, isUploading }} />} />
               <Route path="/profile" element={<Profile />} />
             </Routes>
           </Authenticated>

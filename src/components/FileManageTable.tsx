@@ -1,17 +1,26 @@
 import { cleanFileName } from "@/lib/file";
-import { useAction, useMutation } from "convex/react";
-import { useState } from "react";
+import { useAction, useMutation, useQuery } from "convex/react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { api } from "../../convex/_generated/api";
 import { Id } from "../../convex/_generated/dataModel";
-import { FileWithUrl } from "../../convex/files";
 
 type SortField = 'name' | 'extension' | 'size' | '_creationTime';
 type SortDirection = 'asc' | 'desc';
 type ViewMode = 'grid' | 'list';
 
-export function FileManageTable({ files }: { files: FileWithUrl[] }) {
-    const [selectedFiles, setSelectedFiles] = useState<Set<Id<"files">>>(new Set());
+type FileOrFolder = {
+    name: string;
+    type?: string;
+    size?: number;
+    extension?: string;
+    _creationTime: number;
+    _id: Id<"files"> | Id<"folders">;
+    url: string | null;
+}
+
+export function FileManageTable({ rootFolderId }: { rootFolderId: Id<"folders"> }) {
+    const [selectedFiles, setSelectedFiles] = useState<Set<Id<"files"> | Id<"folders">>>(new Set());
     const [sortField, setSortField] = useState<SortField>('_creationTime');
     const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
     const [viewMode, setViewMode] = useState<ViewMode>('list');
@@ -26,7 +35,8 @@ export function FileManageTable({ files }: { files: FileWithUrl[] }) {
     const downloadFilesAsZipAction = useAction(api.fileActions.downloadFilesAsZip);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-    const formatFileSize = (bytes: number) => {
+    const formatFileSize = (bytes?: number) => {
+        if (bytes === undefined) return '0 Bytes';
         if (bytes === 0) return '0 Bytes';
         const k = 1024;
         const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
@@ -35,7 +45,7 @@ export function FileManageTable({ files }: { files: FileWithUrl[] }) {
     };
 
     const formatDate = (timestamp: number) => {
-        return new Date(timestamp).toLocaleDateString('en-US', {
+        return new Date(timestamp).toLocaleDateString('de-CH', {
             year: 'numeric',
             month: 'short',
             day: 'numeric',
@@ -53,7 +63,41 @@ export function FileManageTable({ files }: { files: FileWithUrl[] }) {
         }
     };
 
-    const sortedFiles = [...files].sort((a, b) => {
+    const [filesAndFolders, setFilesAndFolders] = useState<FileOrFolder[]>([]);
+    const filesAndFoldersResult = useQuery(api.folders.getFilesAndFoldersRec, {
+        folderId: rootFolderId
+    });
+
+    useEffect(() => {
+        if (!filesAndFoldersResult) return;
+
+        let filesList: FileOrFolder[] = [];
+        for (const file of filesAndFoldersResult.files) {
+            filesList.push({
+                type: file.type,
+                name: file.name,
+                _creationTime: file._creationTime,
+                _id: file._id,
+                size: file.size,
+                extension: file.extension,
+                url: file.url,
+            });
+        }
+        for (const folder of filesAndFoldersResult.folders) {
+            filesList.push({
+                type: "folder",
+                name: folder.name,
+                _creationTime: folder._creationTime,
+                _id: folder._id,
+                url: null,
+            });
+        }
+        setFilesAndFolders(filesList);
+    }, [filesAndFoldersResult]);
+    //useQuery(api.files.listFilesInFolder, { folderId: rootFolderId }) || [];
+
+
+    const sortedFiles = [...filesAndFolders].sort((a, b) => {
         let aValue: string | number;
         let bValue: string | number;
 
@@ -63,12 +107,12 @@ export function FileManageTable({ files }: { files: FileWithUrl[] }) {
                 bValue = b.name.toLowerCase();
                 break;
             case 'extension':
-                aValue = a.type.toLowerCase();
-                bValue = b.type.toLowerCase();
+                aValue = a.extension?.toLowerCase() || "";
+                bValue = b.extension?.toLowerCase() || "";
                 break;
             case 'size':
-                aValue = a.size;
-                bValue = b.size;
+                aValue = a.size || 0;
+                bValue = b.size || 0;
                 break;
             case '_creationTime':
                 aValue = a._creationTime;
@@ -83,7 +127,7 @@ export function FileManageTable({ files }: { files: FileWithUrl[] }) {
         return 0;
     });
 
-    const handleFileSelect = (fileId: Id<"files">, event?: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileSelect = (fileId: Id<"files"> | Id<"folders">, event?: React.ChangeEvent<HTMLInputElement>) => {
         const currentIndex = sortedFiles.findIndex(file => file._id === fileId);
 
         if (event?.nativeEvent && 'shiftKey' in event.nativeEvent && event.nativeEvent.shiftKey && lastSelectedIndex !== null) {
@@ -114,11 +158,15 @@ export function FileManageTable({ files }: { files: FileWithUrl[] }) {
     };
 
     const handleSelectAll = () => {
-        if (selectedFiles.size === files.length) {
+        if (selectedFiles.size === filesAndFolders.length) {
             setSelectedFiles(new Set());
         } else {
-            setSelectedFiles(new Set(files.map(file => file._id)));
+            setSelectedFiles(new Set(filesAndFolders.map(file => file._id)));
         }
+    };
+
+    const isFileId = (id: Id<"files"> | Id<"folders">): id is Id<"files"> => {
+        return (id as any).__tableName === "files";
     };
 
     const handleDeleteSelected = async () => {
@@ -126,9 +174,15 @@ export function FileManageTable({ files }: { files: FileWithUrl[] }) {
             toast.info("No files selected for deletion.");
             return;
         }
-        const promises = Array.from(selectedFiles).map((fileId) =>
-            deleteFileMutation({ fileId })
-        );
+        const promises = Array.from(selectedFiles).map((id) => {
+            if (isFileId(id)) {
+                return deleteFileMutation({ fileId: id });
+            } else {
+                // TODO: Implement folder deletion
+                console.warn("Folder deletion not yet implemented");
+                return Promise.resolve();
+            }
+        });
         try {
             await Promise.all(promises);
             toast.success("Selected files deleted.");
@@ -145,8 +199,13 @@ export function FileManageTable({ files }: { files: FileWithUrl[] }) {
             return;
         }
         try {
+            const fileIds = Array.from(selectedFiles).filter(isFileId);
+            if (fileIds.length === 0) {
+                toast.info("No files selected (only folders were selected).");
+                return;
+            }
             const result = await downloadFilesAsZipAction({
-                fileIds: Array.from(selectedFiles)
+                fileIds
             }) as { url: string | null; name: string } | undefined;
 
             if (result && result.url) {
@@ -167,7 +226,11 @@ export function FileManageTable({ files }: { files: FileWithUrl[] }) {
         }
     };
 
-    const handleStartRename = (fileId: Id<"files">, currentName: string) => {
+    const handleStartRename = (fileId: Id<"files"> | Id<"folders">, currentName: string) => {
+        if (!isFileId(fileId)) {
+            toast.info("Renaming folders is not yet supported");
+            return;
+        }
         setEditingFileId(fileId);
         setEditingFileName(currentName);
     };
@@ -179,14 +242,20 @@ export function FileManageTable({ files }: { files: FileWithUrl[] }) {
             return;
         }
 
-        if (safeFileName === files.find(file => file._id === editingFileId)?.name) {
-            // same name, do nothing
-            setEditingFileId(null);
-            setEditingFileName("");
+        if (!editingFileId) {
             return;
         }
 
-        if (!editingFileId) {
+        const file = filesAndFolders.find(file => file._id === editingFileId);
+        if (!file) {
+            toast.error("File not found");
+            return;
+        }
+
+        if (safeFileName === file.name) {
+            // same name, do nothing
+            setEditingFileId(null);
+            setEditingFileName("");
             return;
         }
 
@@ -224,12 +293,15 @@ export function FileManageTable({ files }: { files: FileWithUrl[] }) {
         return sortDirection === 'asc' ? <span className="text-blue-600">↑</span> : <span className="text-blue-600">↓</span>;
     };
 
-    const IsPreviewable = (type: string | null | undefined) => {
+    const IsPreviewable = (type?: string | null) => {
         if (!type) return false;
         return type.startsWith("image/") || type.startsWith("video/");
     };
 
-    const handleCreateFolder = () => {
+
+
+    const handleCreateFolder = async () => {
+
         setIsCreatingFolder(true);
         setNewFolderName("");
     };
@@ -239,9 +311,23 @@ export function FileManageTable({ files }: { files: FileWithUrl[] }) {
         setNewFolderName("");
     };
 
+    const saveFolderMutation = useMutation(api.folders.saveFolder);
     const handleFinishCreateFolder = async () => {
         // TODO: Implement folder creation logic
         console.log("Creating folder:", newFolderName);
+
+
+        const folderId = await saveFolderMutation({
+            folderId: rootFolderId,
+            name: newFolderName,
+            type: "folder",
+            size: 0,
+        });
+
+        // TODO: Add folder to the files list
+
+        console.log("Folder created:", folderId);
+
     };
 
     const handleCreateFolderKeyDown = (e: React.KeyboardEvent) => {
@@ -255,7 +341,7 @@ export function FileManageTable({ files }: { files: FileWithUrl[] }) {
     return (
         <div className="select-none">
 
-            {files.length > 0 && (
+            {filesAndFolders.length > 0 && (
                 <div className="pt-8">
                     <div className="grid grid-cols-2 md:grid-cols-3 items-center mb-4 gap-4">
                         <h2 className={`text-2xl font-semibold cursor-pointer p-2  ${selectedFiles.size > 0 ? "bg-gray-200 rounded-md w-fit" : ""}`} onClick={() => setSelectedFiles(new Set())}>
@@ -372,7 +458,7 @@ export function FileManageTable({ files }: { files: FileWithUrl[] }) {
                                             <th className="px-4 py-3 text-left">
                                                 <input
                                                     type="checkbox"
-                                                    checked={selectedFiles.size === files.length && files.length > 0}
+                                                    checked={selectedFiles.size === filesAndFolders.length && filesAndFolders.length > 0}
                                                     onChange={handleSelectAll}
                                                     className="form-checkbox h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
                                                 />
@@ -470,18 +556,20 @@ export function FileManageTable({ files }: { files: FileWithUrl[] }) {
                                                     )}
                                                 </td>
                                                 <td className="px-4 py-1 whitespace-nowrap">
-                                                    <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
-                                                        {file.extension}
+                                                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${file.type === "folder" ? "bg-blue-100 text-blue-800" : "bg-gray-100 text-gray-800"}`}>
+                                                        {
+                                                            file.type === "folder" ? "folder" : file.extension
+                                                        }
                                                     </span>
                                                 </td>
                                                 <td className="px-4 py-1 whitespace-nowrap text-sm text-gray-500">
-                                                    {formatFileSize(file.size)}
+                                                    {file.type === "folder" ? "" : formatFileSize(file.size)}
                                                 </td>
                                                 <td className="px-4 py-1 whitespace-nowrap text-sm text-gray-500">
                                                     {formatDate(file._creationTime)}
                                                 </td>
                                                 <td className="px-4 whitespace-nowrap">
-                                                    {file.url && file.type.startsWith("image/") ? (
+                                                    {file.url && file.type && file.type.startsWith("image/") ? (
                                                         <img
                                                             src={file.url}
                                                             alt={file.name}
@@ -533,7 +621,7 @@ export function FileManageTable({ files }: { files: FileWithUrl[] }) {
                             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 xl:grid-cols-8 gap-2">
                                 {sortedFiles.map((file) => (
                                     <div key={file._id} className="bg-white rounded-lg border border-gray-200 w-full">
-                                        {IsPreviewable(file.type) && file.url ? (
+                                        {IsPreviewable(file.type) && file.url && file.type !== "folder" ? (
                                             <img src={file.url} alt={file.name} className="h-48 w-48 object-contain" />
                                         ) : (
                                             <div className="h-48 bg-gray-100 flex items-center justify-center flex-col gap-2">
