@@ -11,14 +11,19 @@ interface FileRec {
     name: string;
     type: string;
     size: number;
-    folderId: string;
+    folderId: Id<"folders">;
     body: File;
+    extension: string;
 }
 
-function getFilesForUploadRec(rootFolderId: Id<"folders">, files: File[]): FileRec[] {
+function getFrontendFilesForUploadRec(rootFolderId: Id<"folders">, files: File[]): FileRec[] {
+    // this will ask the browser what files are inside folders that are uploaded
     return files.map(file => {
+        const extension = file.name.split(".").pop();
+        const name = file.name.split(".")[0]
         return {
-            name: file.name,
+            name: name,
+            extension: extension || "",
             type: file.type,
             size: file.size,
             folderId: rootFolderId,
@@ -28,18 +33,22 @@ function getFilesForUploadRec(rootFolderId: Id<"folders">, files: File[]): FileR
 }
 
 export function FileManagement() {
+
     // All hooks must be called before any conditional returns
     const saveFile = useMutation(api.files.saveFile);
+    const generateUploadUrl = useMutation(api.files.generateFileUploadUrl);
     const ensureRootFolder = useMutation(api.folders.ensureRootFolder);
-    const user = useQuery(api.auth.loggedInUser);
+
     const [rootFolderId, setRootFolderId] = useState<Id<"folders"> | null>(null);
     const [isUploading, setIsUploading] = useState(false);
     const [uploadingCount, setUploadingCount] = useState(0);
 
+    const user = useQuery(api.auth.loggedInUser);
     // Always call useQuery, but with null for folderId if not available
     const filesQuery = useQuery(api.files.listFilesInFolder,
         rootFolderId ? { folderId: rootFolderId } : "skip"
     );
+
     const files = filesQuery || [];
 
     // Effect to ensure root folder exists and get its ID
@@ -62,55 +71,33 @@ export function FileManagement() {
         return <div>Please log in</div>;
     }
 
+
     const handleUploadFiles = async (files: FileList) => {
-        if (!files || files.length === 0 || !rootFolderId) return;
-        setIsUploading(true);
-        setUploadingCount(prev => prev + files.length);
+        if (!rootFolderId) {
+            throw new Error("Root folder not found");
+        };
+        const fileRecs = getFrontendFilesForUploadRec(rootFolderId, Array.from(files));
 
-        try {
-            const filesRec = getFilesForUploadRec(rootFolderId, Array.from(files));
-
-            await Promise.all(filesRec.map(async (file) => {
-                try {
-                    const convexUrl = import.meta.env.VITE_CONVEX_URL;
-                    if (!convexUrl) {
-                        throw new Error("Convex URL not found in environment variables");
-                    }
-                    const upload = await fetch(`${convexUrl}/api/files/upload`, {
-                        method: "POST",
-                        headers: {
-                            "User-File-Name": file.name,
-                            "User-File-Type": file.type,
-                        },
-                        body: file.body,
-                    });
-                    if (!upload.ok) {
-                        throw new Error(`Upload failed with status ${upload.status}`);
-                    }
-                    const { storageId } = await upload.json();
-                    await saveFile({
-                        storageId,
-                        name: file.name,
-                        type: file.type,
-                        size: file.size,
-                        extension: file.name.split(".").pop() || "",
-                        folderId: file.folderId as Id<"folders">,
-                        isFolder: false,
-                    });
-                } catch (error) {
-                    console.error("Failed to upload file:", error);
-                    toast.error(`Failed to upload ${file.name}`);
-                } finally {
-                    setUploadingCount(prev => prev - 1);
-                }
-            }));
-        } catch (error) {
-            console.error("Upload failed:", error);
-            toast.error("Failed to upload files");
-        } finally {
+        Promise.all(Array.from(fileRecs).map(async (file) => {
+            const newFileUrl = await generateUploadUrl();
+            const result = await fetch(newFileUrl, {
+                method: "POST",
+                headers: { "Content-Type": file.type },
+                body: file.body,
+            });
+            const { storageId } = await result.json();
+            setUploadingCount(prev => prev + 1);
+            setIsUploading(true);
+            await saveFile({
+                storageId, name:
+                    file.name, type: file.type, size: file.size,
+                folderId: rootFolderId, extension: file.extension, isFolder: false
+            });
+            setUploadingCount(prev => prev - 1);
             setIsUploading(false);
-        }
+        }));
     };
+
 
     return (
         <div className="p-8">

@@ -37,6 +37,13 @@ export const saveFile = mutation({
 
 type FileWithUrl = Doc<"files"> & { url: string | null };
 
+export const generateFileUploadUrl = mutation({
+  handler: async (ctx) => {
+    return await ctx.storage.generateUploadUrl();
+  },
+});
+
+
 export const deleteFile = mutation({
   args: { fileId: v.id("files") },
   handler: async (ctx, args): Promise<void> => {
