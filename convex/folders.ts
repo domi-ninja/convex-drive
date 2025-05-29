@@ -2,40 +2,73 @@ import { v } from "convex/values";
 import {
   internalMutation,
   mutation,
-  query,
+  query
 } from "./_generated/server";
 // Removed "use node" and JSZip import as actions are moved
 import { getAuthUserId } from "@convex-dev/auth/server";
-import { Doc } from "./_generated/dataModel";
+import { Doc, Id } from "./_generated/dataModel";
 
-export const saveFile = mutation({
+export const saveFolder = mutation({
   args: {
     storageId: v.id("_storage"),
     name: v.string(),
     type: v.string(),
     size: v.number(),
-    folderId: v.id("folders"),
-    extension: v.string(),
-    isFolder: v.boolean(),
+    folderId: v.optional(v.id("folders")),
   },
   handler: async (ctx, args): Promise<void> => {
     const userId = await getAuthUserId(ctx);
     if (!userId) {
       throw new Error("User not authenticated");
     }
-    await ctx.db.insert("files", {
-      storageId: args.storageId,
+    await ctx.db.insert("folders", {
       name: args.name,
-      type: args.type,
       userId,
       size: args.size,
-      folderId: args.folderId,
-      extension: args.extension,
+      folderId: args.folderId || null as any,
     });
   },
 });
 
-type FileWithUrl = Doc<"files"> & { url: string | null };
+export type Folder = Doc<"folders">;// & { url: string | null };
+
+export const getFolder = query({
+  args: { folderId: v.id("folders") },
+  handler: async (ctx, args): Promise<Folder> => {
+    const folder = await ctx.db.get(args.folderId);
+    if (!folder) {
+      throw new Error("Folder not found");
+    }
+    return folder;
+  },
+});
+
+export const ensureRootFolder = mutation({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args): Promise<Id<"folders">> => {
+    const ROOT = "Root";
+    if (!args.userId) {
+      throw new Error("User not authenticated");
+    }
+    let result = await ctx.db.query("folders").withIndex("by_userAndName",
+      (q) => q.eq("userId", args.userId).eq("name", ROOT)).first();
+    if (!result) {
+      const id = await ctx.db.insert("folders", {
+        name: ROOT,
+        userId: args.userId,
+        size: 0,
+        folderId: undefined, // Root folder has no parent
+      });
+      result = await ctx.db.get(id);
+    }
+
+    if (!result) {
+      throw new Error("Not able to create root folder");
+    }
+
+    return result._id;
+  },
+});
 
 export const deleteFile = mutation({
   args: { fileId: v.id("files") },
@@ -82,26 +115,6 @@ export const getFileForDownload = query({
     return file;
   },
 });
-
-
-export const listFilesInFolder = query({
-  args: { folderId: v.id("folders") },
-  handler: async (ctx, args): Promise<Array<FileWithUrl>> => {
-    const files = await ctx.db
-      .query("files")
-      .withIndex("by_folderId", (q) => q.eq("folderId", args.folderId))
-      .order("desc")
-      .collect();
-
-    return Promise.all(
-      files.map(async (file) => ({
-        ...file,
-        url: await ctx.storage.getUrl(file.storageId),
-      }))
-    );
-  },
-});
-
 
 export const deleteTemporaryZip = internalMutation({
   args: { storageId: v.id("_storage") },
