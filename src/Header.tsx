@@ -2,8 +2,14 @@ import { Authenticated, useQuery } from "convex/react";
 import { Link } from "react-router-dom";
 import { api } from "../convex/_generated/api";
 import { SignOutButton } from "./SignOutButton";
+import { FileUploadArea } from "./components";
+import { FileUploadAreaProps } from "./components/FileUploadArea";
 
-export default function Header() {
+export default function Header({ fileUploadProps }:
+    { fileUploadProps: FileUploadAreaProps }) {
+
+    const { handleUploadFiles, uploadingCount, isUploading } = fileUploadProps;
+
     const loggedInUser = useQuery(api.auth.loggedInUser);
 
     return (
@@ -13,6 +19,11 @@ export default function Header() {
             </Link>
             <div className="flex items-center gap-4">
                 <Authenticated>
+                    <FileUploadArea
+                        handleUploadFiles={handleUploadFiles}
+                        uploadingCount={uploadingCount}
+                        isUploading={isUploading}
+                    />
                     <nav className="flex items-center gap-4">
                         <Link
                             to="/profile"

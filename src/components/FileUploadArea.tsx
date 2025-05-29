@@ -1,14 +1,17 @@
 import React, { useCallback, useState } from "react";
 
-interface FileUploadAreaProps {
+export interface FileUploadAreaProps {
     handleUploadFiles: (files: FileList) => Promise<void>;
     uploadingCount: number;
     isUploading: boolean;
 }
 
 export function FileUploadArea({
-    handleUploadFiles, uploadingCount, isUploading,
+    handleUploadFiles,
+    uploadingCount,
+    isUploading
 }: FileUploadAreaProps) {
+
 
     const [isDragging, setIsDragging] = useState(false);
     const handleDragOver = useCallback((event: React.DragEvent<HTMLDivElement>) => {
