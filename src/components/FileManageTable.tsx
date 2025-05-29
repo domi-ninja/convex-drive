@@ -786,7 +786,12 @@ export function FileManageTable({ fileUploadProps }: { fileUploadProps: FileMana
                                                 className="text-gray-900 cursor-pointer hover:text-blue-600 break-words break-all"
                                                 onClick={() => handleStartRename(file._id, file.name, file.type as "file" | "folder")}
                                             >
-                                                {file.name}
+                                                <span className="group hover:text-blue-600">
+                                                    <span className="group-hover:text-blue-600">{file.name}</span>
+                                                    <span className="text-gray-400 group-hover:text-blue-600">
+                                                        {(file.extension && file.extension !== "") ? `.${file.extension}` : ""}
+                                                    </span>
+                                                </span>
                                             </h3>
                                         )}
                                     </div>
