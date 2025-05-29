@@ -5,12 +5,14 @@ import { toast, Toaster } from "sonner";
 import { api } from "../convex/_generated/api";
 import { Id } from "../convex/_generated/dataModel";
 import Header from "./Header";
+import { splitFileName } from "./lib/file";
 import { Home } from "./pages/Home";
 import { Profile } from "./pages/Profile";
 import { SignInForm } from "./SignInForm";
 
 export interface FileManagerProps {
   handleUploadFiles: (files: FileList) => Promise<void>;
+  // handleDropUpload: (dataTransfer: DataTransfer) => Promise<void>;
   uploadingCount: number;
   isUploading: boolean;
   rootFolderId: Id<"folders">;
@@ -62,30 +64,48 @@ export default function App() {
     if (!rootFolderId) {
       throw new Error("Root folder not found");
     };
-    const fileRecs = getFrontendFilesForUploadRec(currentFolderId || rootFolderId, Array.from(files));
 
-    Promise.all(Array.from(fileRecs).map(async (file) => {
+    toast.info(`Uploading ${files.length} files`);
+
+    setIsUploading(true);
+    setUploadingCount(files.length);
+    await Promise.all(Array.from(files).map(async (file) => {
       const newFileUrl = await generateUploadUrl();
-      const result = await fetch(newFileUrl, {
-        method: "POST",
-        headers: { "Content-Type": file.type },
-        body: file.body,
-      });
+      let result;
+      try {
+        const fileBuffer = await file.arrayBuffer();
+        result = await fetch(newFileUrl, {
+          method: "POST",
+          headers: { "Content-Type": file.type },
+          body: fileBuffer,
+        });
+        if (!result.ok) {
+          throw new Error(`Upload failed with status ${result.status}`);
+        }
+      } catch (error) {
+        console.error("File upload failed:", error);
+        toast.error(`Failed to upload ${file.name}`);
+        setUploadingCount(prev => prev - 1);
+        return;
+      }
       const { storageId } = await result.json();
-      setUploadingCount(prev => prev + 1);
-      setIsUploading(true);
+
+      // use js stdblib to get the name and extension
+      const { name, extension } = splitFileName(file.name);
+
       await saveFile({
         storageId, name:
-          file.name,
+          name,
         type: file.type,
         size: file.size,
         folderId: currentFolderId || rootFolderId,
-        extension: file.extension,
+        extension: extension,
         isFolder: false
       });
+
       setUploadingCount(prev => prev - 1);
-      setIsUploading(false);
     }));
+    setIsUploading(false);
   };
 
   if (!rootFolderId) {
@@ -122,34 +142,34 @@ export default function App() {
             </Routes>
           </Authenticated>
         </main>
-        <Toaster />
+        {/* <Toaster
+          toastOptions={{
+            style: {},
+            className: '',
+            descriptionClassName: '',
+          }}
+          theme="light"
+          position="top-right"
+          expand={false}
+          richColors={true}
+          closeButton={true}
+        /> */}
+
+        <Toaster
+          toastOptions={{
+            style: {
+              background: "white",
+            },
+          }}
+          theme="light"
+          position="top-right"
+          expand={true}
+          richColors={true}
+          closeButton={false}
+        />
+
       </div>
     </Router>
   );
 }
 
-interface FileUploadRec {
-  name: string;
-  type: string;
-  size: number;
-  folderId: Id<"folders">;
-  body: File;
-  extension: string;
-}
-
-
-function getFrontendFilesForUploadRec(rootFolderId: Id<"folders">, files: File[]): FileUploadRec[] {
-  // this will ask the browser what files are inside folders that are uploaded
-  return files.map(file => {
-    const extension = file.name.split(".").pop();
-    const name = file.name.split(".")[0]
-    return {
-      name: name,
-      extension: extension || "",
-      type: file.type,
-      size: file.size,
-      folderId: rootFolderId,
-      body: file,
-    };
-  });
-}

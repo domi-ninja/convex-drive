@@ -25,16 +25,15 @@ export function FileUploadArea({ fileUploadProps }: { fileUploadProps: FileManag
             event.preventDefault();
             event.stopPropagation();
             setIsDragging(false);
-            const droppedFiles = event.dataTransfer.files;
-            await handleUploadFiles(droppedFiles);
+            await handleUploadFiles(event.dataTransfer.files);
             event.dataTransfer.clearData();
         },
-        [setIsDragging, handleUploadFiles]
+        [setIsDragging]
     );
 
     return (
         <div
-            className={`py-2 px-4 border-2 ${isDragging ? "border-primary bg-blue-50" : "border-dashed border-gray-300 bg-gray-100"
+            className={`py-4 px-4 border-2 ${isDragging ? "border-primary bg-blue-50" : "border-dashed border-gray-300 bg-gray-100"
                 } rounded-lg transition-all duration-200`}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
