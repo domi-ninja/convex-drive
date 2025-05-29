@@ -321,18 +321,13 @@ export function FileManageTable({ rootFolderId }: { rootFolderId: Id<"folders"> 
 
     const saveFolderMutation = useMutation(api.folders.saveFolder);
     const handleFinishCreateFolder = async () => {
-        // TODO: Implement folder creation logic
-        console.log("Creating folder:", newFolderName);
-
 
         const folderId = await saveFolderMutation({
             folderId: rootFolderId,
-            name: newFolderName,
+            name: cleanFileName(newFolderName),
             type: "folder",
             size: 0,
         });
-
-        // TODO: Add folder to the files list
 
         console.log("Folder created:", folderId);
 
