@@ -475,6 +475,8 @@ export function FileManageTable({ rootFolderId }: { rootFolderId: Id<"folders"> 
                                                     <SortIcon field="name" />
                                                 </div>
                                             </th>
+                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100">
+                                            </th>
                                             <th
                                                 className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                                                 onClick={() => handleSort('extension')}
@@ -550,13 +552,27 @@ export function FileManageTable({ rootFolderId }: { rootFolderId: Id<"folders"> 
                                                         </div>
                                                     ) : (
                                                         <div
-                                                            className="text-sm font-medium text-gray-900 max-w-xs cursor-pointer hover:text-blue-600"
+                                                            className="text-sm font-medium text-gray-900 max-w-xs cursor-pointer"
                                                             title={file.name}
-                                                            onClick={() => handleStartRename(file._id, file.name, file.type as "file" | "folder")}
                                                         >
-                                                            {file.name}
+                                                            <span className="group hover:text-blue-600">
+                                                                <span className="group-hover:text-blue-600">{file.name}</span>
+                                                                <span className="text-gray-400 group-hover:text-blue-600">
+                                                                    {(file.extension && file.extension !== "") ? `.${file.extension}` : ""}
+                                                                </span>
+                                                            </span>
                                                         </div>
                                                     )}
+                                                </td>
+                                                <td className="px-4 py-1 whitespace-nowrap">
+                                                    <button
+                                                        onClick={() => handleStartRename(file._id, file.name, file.type as "file" | "folder")}
+                                                        className="hover:text-blue-800 w-full hover:bg-blue-100 rounded-md p-1"
+                                                    >
+                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                                                        </svg>
+                                                    </button>
                                                 </td>
                                                 <td className="px-4 py-1 whitespace-nowrap">
                                                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${file.type === "folder" ? "bg-blue-100 text-blue-800" : "bg-gray-100 text-gray-800"}`}>
