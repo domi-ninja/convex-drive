@@ -311,137 +311,169 @@ export function FileManageTable({ files, uploadingCount = 0 }: { files: FileWith
                     </div>
                     <div className="overflow-x-auto">
                         {viewMode === "list" && (
-                            <table className="min-w-full bg-white border border-gray-200 rounded-lg shadow-sm">
-                                <thead className="bg-gray-50">
-                                    <tr>
-                                        <th className="px-4 py-3 text-left">
-                                            <input
-                                                type="checkbox"
-                                                checked={selectedFiles.size === files.length && files.length > 0}
-                                                onChange={handleSelectAll}
-                                                className="form-checkbox h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
-                                            />
-                                        </th>
-                                        <th
-                                            className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                                            onClick={() => handleSort('name')}
-                                        >
-                                            <div className="flex items-center gap-1">
-                                                Name
-                                                <SortIcon field="name" />
-                                            </div>
-                                        </th>
-                                        <th
-                                            className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                                            onClick={() => handleSort('type')}
-                                        >
-                                            <div className="flex items-center gap-1">
-                                                Type
-                                                <SortIcon field="type" />
-                                            </div>
-                                        </th>
-                                        <th
-                                            className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                                            onClick={() => handleSort('size')}
-                                        >
-                                            <div className="flex items-center gap-1">
-                                                Size
-                                                <SortIcon field="size" />
-                                            </div>
-                                        </th>
-                                        <th
-                                            className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                                            onClick={() => handleSort('_creationTime')}
-                                        >
-                                            <div className="flex items-center gap-1">
-                                                Upload Date
-                                                <SortIcon field="_creationTime" />
-                                            </div>
-                                        </th>
-                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Preview
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody className="bg-white divide-y divide-gray-200">
-                                    {sortedFiles.map((file) => (
-                                        <tr
-                                            key={file._id}
-                                            className={`hover:bg-gray-50 ${selectedFiles.has(file._id) ? 'bg-blue-50' : ''}`}
-                                        >
-                                            <td className="px-4 py-1 whitespace-nowrap">
+                            <div>
+                                <table className="min-w-full bg-white border border-gray-200 rounded-lg shadow-sm">
+                                    <thead className="bg-gray-50">
+                                        <tr>
+                                            <th className="px-4 py-3 text-left">
                                                 <input
                                                     type="checkbox"
-                                                    checked={selectedFiles.has(file._id)}
-                                                    onChange={(e) => handleFileSelect(file._id, e)}
+                                                    checked={selectedFiles.size === files.length && files.length > 0}
+                                                    onChange={handleSelectAll}
                                                     className="form-checkbox h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
                                                 />
-                                            </td>
-                                            <td className="px-4 py-1 whitespace-nowrap">
-                                                {editingFileId === file._id ? (
-                                                    <div className="flex items-center gap-2 flex-1">
-                                                        <input
-                                                            type="text"
-                                                            value={editingFileName}
-                                                            onChange={(e) => setEditingFileName(e.target.value)}
-                                                            onKeyDown={handleRenameKeyDown}
-                                                            onBlur={handleSaveRename}
-                                                            className="text-sm font-medium text-gray-900 border border-blue-500 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 flex-1"
-                                                            autoFocus
-                                                        />
-                                                        <button
-                                                            onClick={handleSaveRename}
-                                                            className="text-green-600 hover:text-green-800"
-                                                            title="Save"
-                                                        >
-                                                            ✓
-                                                        </button>
-                                                        <button
-                                                            onClick={handleCancelRename}
-                                                            className="text-red-600 hover:text-red-800"
-                                                            title="Cancel"
-                                                        >
-                                                            ✕
-                                                        </button>
-                                                    </div>
-                                                ) : (
-                                                    <div
-                                                        className="text-sm font-medium text-gray-900 max-w-xs cursor-pointer hover:text-blue-600"
-                                                        title={file.name}
-                                                        onClick={() => handleStartRename(file._id, file.name)}
-                                                    >
-                                                        {file.name}
-                                                    </div>
-                                                )}
-                                            </td>
-                                            <td className="px-4 py-1 whitespace-nowrap">
-                                                <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
-                                                    {file.type}
-                                                </span>
-                                            </td>
-                                            <td className="px-4 py-1 whitespace-nowrap text-sm text-gray-500">
-                                                {formatFileSize(file.size)}
-                                            </td>
-                                            <td className="px-4 py-1 whitespace-nowrap text-sm text-gray-500">
-                                                {formatDate(file._creationTime)}
-                                            </td>
-                                            <td className="px-4 whitespace-nowrap">
-                                                {file.url && file.type.startsWith("image/") ? (
-                                                    <img
-                                                        src={file.url}
-                                                        alt={file.name}
-                                                        className="h-8 w-8 object-cover rounded-md border"
-                                                    />
-                                                ) : (
-                                                    <div className="h-8 w-8 bg-gray-100 rounded-md flex items-center justify-center">
-                                                        <span className="text-xs text-gray-500">📄</span>
-                                                    </div>
-                                                )}
-                                            </td>
+                                            </th>
+                                            <th
+                                                className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                                                onClick={() => handleSort('name')}
+                                            >
+                                                <div className="flex items-center gap-1">
+                                                    Name
+                                                    <SortIcon field="name" />
+                                                </div>
+                                            </th>
+                                            <th
+                                                className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                                                onClick={() => handleSort('type')}
+                                            >
+                                                <div className="flex items-center gap-1">
+                                                    Type
+                                                    <SortIcon field="type" />
+                                                </div>
+                                            </th>
+                                            <th
+                                                className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                                                onClick={() => handleSort('size')}
+                                            >
+                                                <div className="flex items-center gap-1">
+                                                    Size
+                                                    <SortIcon field="size" />
+                                                </div>
+                                            </th>
+                                            <th
+                                                className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                                                onClick={() => handleSort('_creationTime')}
+                                            >
+                                                <div className="flex items-center gap-1">
+                                                    Upload Date
+                                                    <SortIcon field="_creationTime" />
+                                                </div>
+                                            </th>
+                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Preview
+                                            </th>
                                         </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody className="bg-white divide-y divide-gray-200">
+                                        {sortedFiles.map((file) => (
+                                            <tr
+                                                key={file._id}
+                                                className={`hover:bg-gray-50 ${selectedFiles.has(file._id) ? 'bg-blue-50' : ''}`}
+                                            >
+                                                <td className="px-4 py-1 whitespace-nowrap">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={selectedFiles.has(file._id)}
+                                                        onChange={(e) => handleFileSelect(file._id, e)}
+                                                        className="form-checkbox h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                                                    />
+                                                </td>
+                                                <td className="px-4 py-1 whitespace-nowrap">
+                                                    {editingFileId === file._id ? (
+                                                        <div className="flex items-center gap-2 flex-1">
+                                                            <input
+                                                                type="text"
+                                                                value={editingFileName}
+                                                                onChange={(e) => setEditingFileName(e.target.value)}
+                                                                onKeyDown={handleRenameKeyDown}
+                                                                onBlur={handleSaveRename}
+                                                                className="text-sm font-medium text-gray-900 border border-blue-500 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 flex-1"
+                                                                autoFocus
+                                                            />
+                                                            <button
+                                                                onClick={handleSaveRename}
+                                                                className="text-green-600 hover:text-green-800"
+                                                                title="Save"
+                                                            >
+                                                                ✓
+                                                            </button>
+                                                            <button
+                                                                onClick={handleCancelRename}
+                                                                className="text-red-600 hover:text-red-800"
+                                                                title="Cancel"
+                                                            >
+                                                                ✕
+                                                            </button>
+                                                        </div>
+                                                    ) : (
+                                                        <div
+                                                            className="text-sm font-medium text-gray-900 max-w-xs cursor-pointer hover:text-blue-600"
+                                                            title={file.name}
+                                                            onClick={() => handleStartRename(file._id, file.name)}
+                                                        >
+                                                            {file.name}
+                                                        </div>
+                                                    )}
+                                                </td>
+                                                <td className="px-4 py-1 whitespace-nowrap">
+                                                    <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
+                                                        {file.type}
+                                                    </span>
+                                                </td>
+                                                <td className="px-4 py-1 whitespace-nowrap text-sm text-gray-500">
+                                                    {formatFileSize(file.size)}
+                                                </td>
+                                                <td className="px-4 py-1 whitespace-nowrap text-sm text-gray-500">
+                                                    {formatDate(file._creationTime)}
+                                                </td>
+                                                <td className="px-4 whitespace-nowrap">
+                                                    {file.url && file.type.startsWith("image/") ? (
+                                                        <img
+                                                            src={file.url}
+                                                            alt={file.name}
+                                                            className="h-8 w-8 object-cover rounded-md border"
+                                                        />
+                                                    ) : (
+                                                        <div className="h-8 w-8 bg-gray-100 rounded-md flex items-center justify-center">
+                                                            <span className="text-xs text-gray-500">📄</span>
+                                                        </div>
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                                <div
+                                    onClick={() => !isCreatingFolder && handleCreateFolder()}
+                                    className="w-fit bg-gray-100 rounded-lg border border-gray-200 p-2 flex items-center gap-2 cursor-pointer hover:bg-gray-200 mt-4 min-w-64"
+                                >
+                                    <div className="flex items-center gap-2 w-full">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 text-gray-500 flex-shrink-0">
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 10.5v6m3-3H9m4.06-7.19l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z" />
+                                        </svg>
+                                        {isCreatingFolder ? (
+                                            <input
+                                                type="text"
+                                                id="new-folder-name"
+                                                value={newFolderName}
+                                                onChange={(e) => setNewFolderName(e.target.value)}
+                                                onBlur={handleCancelCreateFolder}
+                                                onKeyDown={handleCreateFolderKeyDown}
+                                                className="text-gray-900 border border-blue-500 rounded px-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm flex-1"
+                                                placeholder="Enter folder name"
+                                                autoFocus
+                                            />
+                                        ) : (
+                                            <>
+                                                <span className=" text-sm text-gray-500">
+                                                    Create Folder
+                                                </span>
+                                            </>
+                                        )}
+                                    </div>
+
+                                </div>
+                            </div>
                         )}
                         {viewMode === "grid" && (
                             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 xl:grid-cols-8 gap-2">
