@@ -1,4 +1,5 @@
 "use server";
+import { FileWithUrl } from "@/types";
 import { useMutation, useQuery } from "convex/react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -9,8 +10,6 @@ import { FileUploadAreaProps } from "./FileUploadArea";
 
 
 export function FileManagement({ fileUploadProps }: { fileUploadProps: FileUploadAreaProps }) {
-
-    const { handleUploadFiles, uploadingCount, isUploading } = fileUploadProps;
 
     // All hooks must be called before any conditional returns
     const saveFile = useMutation(api.files.saveFile);
@@ -44,11 +43,7 @@ export function FileManagement({ fileUploadProps }: { fileUploadProps: FileUploa
     }, [user?._id, ensureRootFolder]);
 
     if (!user?._id) {
-        return (
-            <div className="flex justify-center items-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-            </div>
-        );
+        return <div>Please log in</div>;
     }
 
 
@@ -56,7 +51,7 @@ export function FileManagement({ fileUploadProps }: { fileUploadProps: FileUploa
         <div className="p-8">
 
 
-            <FileManageTable files={files} uploadingCount={uploadingCount}></FileManageTable>
+            <FileManageTable files={files as FileWithUrl[]}></FileManageTable>
         </div>
     );
 } 

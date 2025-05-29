@@ -35,7 +35,7 @@ export const saveFile = mutation({
   },
 });
 
-type FileWithUrl = Doc<"files"> & { url: string | null };
+export type FileWithUrl = Doc<"files"> & { url: string | null };
 
 export const generateFileUploadUrl = mutation({
   handler: async (ctx) => {
@@ -103,7 +103,8 @@ export const listFilesInFolder = query({
     return Promise.all(
       files.map(async (file) => ({
         ...file,
-        url: await ctx.storage.getUrl(file.storageId),
+        url: (await ctx.storage.getUrl(file.storageId)) || "",
+        extension: file.extension || "",
       }))
     );
   },

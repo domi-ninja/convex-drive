@@ -10,7 +10,7 @@ type SortField = 'name' | 'extension' | 'size' | '_creationTime';
 type SortDirection = 'asc' | 'desc';
 type ViewMode = 'grid' | 'list';
 
-export function FileManageTable({ files, uploadingCount = 0 }: { files: FileWithUrl[]; uploadingCount?: number }) {
+export function FileManageTable({ files }: { files: FileWithUrl[] }) {
     const [selectedFiles, setSelectedFiles] = useState<Set<Id<"files">>>(new Set());
     const [sortField, setSortField] = useState<SortField>('_creationTime');
     const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
