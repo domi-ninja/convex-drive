@@ -16,6 +16,7 @@ import type {
 import type * as auth from "../auth.js";
 import type * as fileActions from "../fileActions.js";
 import type * as files from "../files.js";
+import type * as folders from "../folders.js";
 import type * as http from "../http.js";
 import type * as router from "../router.js";
 
@@ -31,6 +32,7 @@ declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   fileActions: typeof fileActions;
   files: typeof files;
+  folders: typeof folders;
   http: typeof http;
   router: typeof router;
 }>;
