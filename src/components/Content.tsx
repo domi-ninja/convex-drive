@@ -1,7 +1,7 @@
+import { SignIn } from "@clerk/clerk-react";
 import { Authenticated, Unauthenticated, useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { FileManagerProps } from "../App";
-import { SignInForm } from "../SignInForm";
 import { FileManagement } from "./FileManagement";
 
 export function Content({ fileUploadProps }: { fileUploadProps: FileManagerProps }) {
@@ -19,7 +19,7 @@ export function Content({ fileUploadProps }: { fileUploadProps: FileManagerProps
         <div className="flex flex-col gap-8">
             <Unauthenticated>
                 <div className="w-full max-w-md mx-auto">
-                    <SignInForm />
+                    <SignIn />
                 </div>
             </Unauthenticated>
             <Authenticated>

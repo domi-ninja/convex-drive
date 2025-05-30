@@ -1,3 +1,4 @@
+import { SignIn } from "@clerk/clerk-react";
 import { Authenticated, Unauthenticated, useMutation, useQuery } from "convex/react";
 import { useEffect, useState } from "react";
 import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
@@ -8,7 +9,6 @@ import Header from "./Header";
 import { splitFileName } from "./lib/file";
 import { Home } from "./pages/Home";
 import { Profile } from "./pages/Profile";
-import { SignInForm } from "./SignInForm";
 
 export interface FileManagerProps {
   handleUploadFiles: (files: FileList) => Promise<void>;
@@ -124,7 +124,7 @@ export default function App() {
         <main className="">
           <Unauthenticated>
             <div className="flex-1 container mx-auto px-4 py-8 max-w-2xl pt-24">
-              <SignInForm />
+              <SignIn />
             </div>
           </Unauthenticated>
           <Authenticated>

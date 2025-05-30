@@ -113,7 +113,7 @@ export function FileManageTable({ fileUploadProps }: { fileUploadProps: FileMana
                 type: file.type,
                 name: file.name,
                 _creationTime: file._creationTime,
-                _id: file._id,
+                _id: file._id as Id<"files">,
                 size: file.size,
                 extension: file.extension,
                 url: file.url,
@@ -124,7 +124,7 @@ export function FileManageTable({ fileUploadProps }: { fileUploadProps: FileMana
                 type: "folder",
                 name: folder.name,
                 _creationTime: folder._creationTime,
-                _id: folder._id,
+                _id: folder._id as Id<"folders">,
                 url: null,
             });
         }
@@ -427,7 +427,7 @@ export function FileManageTable({ fileUploadProps }: { fileUploadProps: FileMana
                                     Your Files</span>)
                                 :
                                 (<span>
-                                    {currentFolderPath?.map((folder, fidx) => (
+                                    {currentFolderPath?.map((folder: { _id: Id<"folders">; name: string; }, fidx: number) => (
                                         <span key={folder._id}>
                                             <span className="hover:text-blue-600 cursor-pointer" onClick={() => setCurrentFolderId(folder._id)}>
                                                 {(folder._id === rootFolderId ? (
