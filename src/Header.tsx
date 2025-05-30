@@ -1,12 +1,12 @@
 import { Authenticated, useQuery } from "convex/react";
 import { Link, useLocation } from "react-router-dom";
 import { api } from "../convex/_generated/api";
-import { FileManagerProps } from "./App";
+import { FileUploadProps } from "./App";
 import { SignOutButton } from "./SignOutButton";
 import { FileUploadArea } from "./components";
 
 export default function Header({ fileUploadProps }:
-    { fileUploadProps: FileManagerProps }) {
+    { fileUploadProps: FileUploadProps }) {
 
     const location = useLocation();
     const isMainRoute = location.pathname === "/";

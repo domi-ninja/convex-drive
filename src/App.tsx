@@ -1,18 +1,15 @@
 import { Authenticated, Unauthenticated, useMutation, useQuery } from "convex/react";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 import { toast, Toaster } from "sonner";
 import { api } from "../convex/_generated/api";
 import { Id } from "../convex/_generated/dataModel";
 import Header from "./Header";
-import { splitFileName } from "./lib/file";
 import { Home } from "./pages/Home";
 import { Profile } from "./pages/Profile";
 import { SignInForm } from "./SignInForm";
 
 export interface FileManagerProps {
-  handleUploadFiles: (files: FileList) => Promise<void>;
-  // handleDropUpload: (dataTransfer: DataTransfer) => Promise<void>;
   uploadingCount: number;
   isUploading: boolean;
   rootFolderId: Id<"folders"> | null;
@@ -20,12 +17,17 @@ export interface FileManagerProps {
   setCurrentFolderId: (folderId: Id<"folders">) => void;
 }
 
+export interface FileUploadProps {
+  currentFolderId: Id<"folders"> | null;
+  uploadingCount: number;
+  isUploading: boolean;
+  setUploadingCount: React.Dispatch<React.SetStateAction<number>>;
+  setIsUploading: React.Dispatch<React.SetStateAction<boolean>>;
+}
 
 export default function App() {
 
-  // All hooks must be called before any conditional returns
-  const saveFile = useMutation(api.files.saveFile);
-  const generateUploadUrl = useMutation(api.files.generateFileUploadUrl);
+
   const ensureRootFolder = useMutation(api.folders.ensureRootFolder);
 
   const [rootFolderId, setRootFolderId] = useState<Id<"folders"> | null>(null);
@@ -60,62 +62,22 @@ export default function App() {
   }, [user?._id, ensureRootFolder]);
 
 
-  const handleUploadFiles = async (files: FileList) => {
-    if (!rootFolderId) {
-      throw new Error("Root folder not found");
-    };
 
-    toast.info(`Uploading ${files.length} files`);
-
-    setIsUploading(true);
-    setUploadingCount(files.length);
-    await Promise.all(Array.from(files).map(async (file) => {
-      const newFileUrl = await generateUploadUrl();
-      let result;
-      try {
-        const fileBuffer = await file.arrayBuffer();
-        result = await fetch(newFileUrl, {
-          method: "POST",
-          headers: { "Content-Type": file.type },
-          body: fileBuffer,
-        });
-        if (!result.ok) {
-          throw new Error(`Upload failed with status ${result.status}`);
-        }
-      } catch (error) {
-        console.error("File upload failed:", error);
-        toast.error(`Failed to upload ${file.name}`);
-        setUploadingCount(prev => prev - 1);
-        return;
-      }
-      const { storageId } = await result.json();
-
-      // use js stdblib to get the name and extension
-      const { name, extension } = splitFileName(file.name);
-
-      await saveFile({
-        storageId, name:
-          name,
-        type: file.type,
-        size: file.size,
-        folderId: currentFolderId || rootFolderId,
-        extension: extension,
-        isFolder: false
-      });
-
-      setUploadingCount(prev => prev - 1);
-    }));
-    setIsUploading(false);
-  };
-
-
-  const fileUploadProps: FileManagerProps = {
+  const fileMgrProps: FileManagerProps = {
     rootFolderId: rootFolderId || null,
     currentFolderId: currentFolderId || rootFolderId,
-    handleUploadFiles,
     uploadingCount,
     isUploading,
     setCurrentFolderId
+  };
+
+
+  const fileUploadProps: FileUploadProps = {
+    currentFolderId: currentFolderId || rootFolderId,
+    uploadingCount,
+    isUploading,
+    setUploadingCount,
+    setIsUploading
   };
 
   return (
@@ -130,7 +92,7 @@ export default function App() {
           </Unauthenticated>
           <Authenticated>
             <Routes>
-              <Route path="/" element={<Home fileUploadProps={fileUploadProps} />} />
+              <Route path="/" element={<Home fileUploadProps={fileMgrProps} />} />
               <Route path="/profile" element={<Profile />} />
             </Routes>
           </Authenticated>

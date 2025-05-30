@@ -1,11 +1,64 @@
-import { FileManagerProps } from "@/App";
+import { FileUploadProps } from "@/App";
+import { splitFileName } from "@/lib/file";
+import { useMutation } from "convex/react";
 import React, { useCallback, useState } from "react";
+import { toast } from "sonner";
+import { api } from "../../convex/_generated/api";
 
 
-export function FileUploadArea({ fileUploadProps }: { fileUploadProps: FileManagerProps }) {
+export function FileUploadArea({ fileUploadProps }: { fileUploadProps: FileUploadProps }) {
 
-    const { handleUploadFiles, uploadingCount, isUploading, rootFolderId, currentFolderId, setCurrentFolderId } = fileUploadProps;
+    const saveFile = useMutation(api.files.saveFile);
+    const generateUploadUrl = useMutation(api.files.generateFileUploadUrl);
+    const { uploadingCount, isUploading, currentFolderId, setUploadingCount, setIsUploading } = fileUploadProps;
 
+    const handleUploadFiles = async (files: FileList) => {
+        if (!currentFolderId) {
+            throw new Error("!currentFolderId");
+        };
+
+        toast.info(`Uploading ${files.length} files`);
+
+        setIsUploading(true);
+        setUploadingCount(files.length);
+        await Promise.all(Array.from(files).map(async (file) => {
+            const newFileUrl = await generateUploadUrl();
+            let result;
+            try {
+                const fileBuffer = await file.arrayBuffer();
+                result = await fetch(newFileUrl, {
+                    method: "POST",
+                    headers: { "Content-Type": file.type },
+                    body: fileBuffer,
+                });
+                if (!result.ok) {
+                    throw new Error(`Upload failed with status ${result.status}`);
+                }
+            } catch (error) {
+                console.error("File upload failed:", error);
+                toast.error(`Failed to upload ${file.name}`);
+                setUploadingCount(prev => prev - 1);
+                return;
+            }
+            const { storageId } = await result.json();
+
+            // use js stdblib to get the name and extension
+            const { name, extension } = splitFileName(file.name);
+
+            await saveFile({
+                storageId, name:
+                    name,
+                type: file.type,
+                size: file.size,
+                folderId: currentFolderId,
+                extension: extension,
+                isFolder: false
+            });
+
+            setUploadingCount(prev => prev - 1);
+        }));
+        setIsUploading(false);
+    };
 
     const [isDragging, setIsDragging] = useState(false);
     const handleDragOver = useCallback((event: React.DragEvent<HTMLDivElement>) => {
