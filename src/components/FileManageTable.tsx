@@ -48,7 +48,6 @@ export function FileManageTable({ fileUploadProps }: { fileUploadProps: FileMana
 
     const { setCurrentFolderId, currentFolderId } = fileUploadProps;
 
-    const currentFolder = useQuery(api.folders.getFolder, { folderId: currentFolderId });
 
     const downloadFilesAsZipAction = useAction(api.fileActions.downloadFilesAsZip);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -91,6 +90,14 @@ export function FileManageTable({ fileUploadProps }: { fileUploadProps: FileMana
             setSortCriteria(prev => [{ field, direction: 'asc' }, ...prev]);
         }
     };
+
+    if (!currentFolderId) {
+        return (
+            <div className="flex justify-center items-center h-screen">
+                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-900"></div>
+            </div>
+        );
+    }
 
     const [filesAndFolders, setFilesAndFolders] = useState<FileOrFolder[]>([]);
     const filesAndFoldersResult = useQuery(api.folders.getFilesAndFoldersRec, {
@@ -226,7 +233,6 @@ export function FileManageTable({ fileUploadProps }: { fileUploadProps: FileMana
             toast.success("Selected files deleted.");
             setSelectedFiles(new Set());
         } catch (error) {
-            console.error("Failed to delete files:", error);
             toast.error("Failed to delete some files.");
         }
     };
