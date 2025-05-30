@@ -10,16 +10,17 @@
     "lint": "tsc -p convex -noEmit --pretty false && tsc -p . -noEmit --pretty false && convex dev --once && vite build"
   },
   "dependencies": {
-    "@convex-dev/auth": "^0.0.80",
+    "@convex-dev/auth": "^0.0.86",
     "@types/jszip": "^3.4.0",
     "@types/react-router-dom": "^5.3.3",
     "clsx": "^2.1.1",
-    "convex": "1.21.1-alpha.1",
+    "convex": "1.24.3",
     "flex-template": "link:",
     "jszip": "^3.10.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-router-dom": "^7.6.1",
+    "server": "link:@convex-dev/auth/server",
     "sonner": "^2.0.3",
     "tailwind-merge": "^3.1.0"
   },
