@@ -47,8 +47,9 @@ export function FileManageTable({ fileUploadProps }: { fileUploadProps: FileMana
     const [newFolderName, setNewFolderName] = useState<string>("");
 
     const { setCurrentFolderId, currentFolderId } = fileUploadProps;
-
-    const currentFolder = useQuery(api.folders.getFolder, { folderId: currentFolderId });
+    const currentFolder = useQuery(api.folders.getFolder,
+        currentFolderId ? { folderId: currentFolderId } : "skip"
+    );
 
     const downloadFilesAsZipAction = useAction(api.fileActions.downloadFilesAsZip);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -77,9 +78,9 @@ export function FileManageTable({ fileUploadProps }: { fileUploadProps: FileMana
     };
 
     const [filesAndFolders, setFilesAndFolders] = useState<FileOrFolder[]>([]);
-    const filesAndFoldersResult = useQuery(api.folders.getFilesAndFoldersRec, {
-        folderId: currentFolderId
-    });
+    const filesAndFoldersResult = useQuery(api.folders.getFilesAndFoldersRec,
+        currentFolderId ? { folderId: currentFolderId } : "skip"
+    );
 
     useEffect(() => {
         if (!filesAndFoldersResult) return;
@@ -557,6 +558,8 @@ export function FileManageTable({ fileUploadProps }: { fileUploadProps: FileMana
 
     const saveFolderMutation = useMutation(api.folders.saveFolder);
     const handleFinishCreateFolder = async () => {
+        if (!currentFolderId) return;
+
         const folderId = await saveFolderMutation({
             folderId: currentFolderId,
             name: cleanFileName(newFolderName),
@@ -577,7 +580,9 @@ export function FileManageTable({ fileUploadProps }: { fileUploadProps: FileMana
         }
     };
 
-    const currentFolderPath = useQuery(api.folders.getFolderPathRec, { folderId: currentFolderId });
+    const currentFolderPath = useQuery(api.folders.getFolderPathRec,
+        currentFolderId ? { folderId: currentFolderId } : "skip"
+    );
 
     return (
         <div>

@@ -15,8 +15,8 @@ export interface FileManagerProps {
   // handleDropUpload: (dataTransfer: DataTransfer) => Promise<void>;
   uploadingCount: number;
   isUploading: boolean;
-  rootFolderId: Id<"folders">;
-  currentFolderId: Id<"folders">;
+  rootFolderId: Id<"folders"> | null;
+  currentFolderId: Id<"folders"> | null;
   setCurrentFolderId: (folderId: Id<"folders">) => void;
 }
 
@@ -108,16 +108,9 @@ export default function App() {
     setIsUploading(false);
   };
 
-  if (!rootFolderId) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-900"></div>
-      </div>
-    );
-  }
 
   const fileUploadProps: FileManagerProps = {
-    rootFolderId,
+    rootFolderId: rootFolderId || null,
     currentFolderId: currentFolderId || rootFolderId,
     handleUploadFiles,
     uploadingCount,
