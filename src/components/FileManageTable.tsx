@@ -1,5 +1,4 @@
 import { cleanFileName } from "@/lib/file";
-import console from "console";
 import { useAction, useMutation, useQuery } from "convex/react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -56,6 +55,7 @@ export function FileManageTable() {
         setCurrentFolderId,
         files
     } = useFolderContext();
+
 
     const downloadFilesAsZipAction = useAction(api.fileActions.downloadFilesAsZip);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -600,6 +600,7 @@ export function FileManageTable() {
         e.preventDefault();
         setDragOverFolder(null);
 
+        console.log("draggedItems", draggedItems);
         if (draggedItems.size === 0) return;
 
         try {
@@ -644,30 +645,17 @@ export function FileManageTable() {
             {/* className="select-none" */}
             <div className="">
                 <div className="grid grid-cols-2 md:grid-cols-3 items-center mb-4 gap-4">
-                    <h2 className={`text-2xl font-semibold cursor-pointer p-2  ${selectedFiles.size > 0 ? "bg-gray-200 rounded-md w-fit" : ""}`} onClick={() => setSelectedFiles(new Set())}>
-                        {selectedFiles.size > 0 ? (<div>{selectedFiles.size} Files Selected
-                            <span>
-                                <button
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        setSelectedFiles(new Set());
-                                    }}
-                                    className="ml-2 text-sm text-gray-500 hover:text-gray-700"
-                                >
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-4">
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                                    </svg>
-                                </button>
-                            </span>
-                        </div>) :
-                            (currentFolderId === rootFolderId ?
+                    <div className="flex items-center gap-2">
+                        <h2 className={`text-2xl font-semibold cursor-pointer p-2`} onClick={() => setSelectedFiles(new Set())}>
+                            {(currentFolderId === rootFolderId ?
                                 (<span>
                                     <span className="pr-2">
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6 inline-block">
                                             <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-8.69-6.44l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z" />
                                         </svg>
                                     </span>
-                                    Your Files</span>)
+                                    Files
+                                </span>)
                                 :
                                 (<span>
                                     {currentFolderPath?.map((folder, fidx) => (
@@ -675,9 +663,12 @@ export function FileManageTable() {
                                             <span className="hover:text-blue-600 cursor-pointer" onClick={() => setCurrentFolderId(folder._id)}>
                                                 {(folder._id === rootFolderId ? (
                                                     <span>
-                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6 inline-block">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-8.69-6.44l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z" />
-                                                        </svg>
+                                                        <span className="pr-2">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6 inline-block">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-8.69-6.44l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z" />
+                                                            </svg>
+                                                        </span>
+                                                        Files
                                                     </span>
                                                 ) : (
                                                     <span>
@@ -697,11 +688,22 @@ export function FileManageTable() {
                                             )}
                                         </span>
                                     ))}
-
                                 </span>)
                             )}
-                    </h2>
+                        </h2>
 
+                        {selectedFiles.size > 0 ? (<button onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedFiles(new Set());
+                        }} className={`cursor-pointer px-4 py-2 flex items-center gap-2 ${selectedFiles.size > 0 ? "bg-gray-200 rounded-md w-fit" : ""}`}>{selectedFiles.size} Files Selected
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-4">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>) :
+                            (<div>
+
+                            </div>)}
+                    </div>
                     <div className="flex items-center gap-2 justify-center lg:justify-center">
                         <div onClick={() => setViewMode("grid")} className={`flex items-center gap-2 cursor-pointer p-4 rounded-md ${viewMode === "grid" ? "bg-gray-200" : ""}`}>
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
