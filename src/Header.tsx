@@ -1,16 +1,12 @@
 import { Authenticated, useQuery } from "convex/react";
 import { Link, useLocation } from "react-router-dom";
 import { api } from "../convex/_generated/api";
-import { FileUploadProps } from "./App";
 import { SignOutButton } from "./SignOutButton";
 import { FileUploadArea } from "./components";
 
-export default function Header({ fileUploadProps }:
-    { fileUploadProps: FileUploadProps }) {
-
+export default function Header() {
     const location = useLocation();
     const isMainRoute = location.pathname === "/";
-
     const loggedInUser = useQuery(api.auth.loggedInUser);
 
     return (
@@ -23,8 +19,7 @@ export default function Header({ fileUploadProps }:
                 <Authenticated>
                     {isMainRoute && (
                         <div className="hidden sm:block">
-                            <FileUploadArea fileUploadProps={fileUploadProps}
-                            />
+                            <FileUploadArea />
                         </div>
                     )}
                     <div className="flex items-center">
@@ -56,7 +51,7 @@ export default function Header({ fileUploadProps }:
             <Authenticated>
                 {isMainRoute && (
                     <div className="sm:hidden px-3 pb-3 pt-1 border-t border-gray-100">
-                        <FileUploadArea fileUploadProps={fileUploadProps} />
+                        <FileUploadArea />
                     </div>
                 )}
             </Authenticated>

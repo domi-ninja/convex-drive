@@ -1,20 +1,20 @@
-import { FileUploadProps } from "@/App";
 import { splitFileName } from "@/lib/file";
 import { useMutation } from "convex/react";
 import React, { useCallback, useState } from "react";
 import { toast } from "sonner";
 import { api } from "../../convex/_generated/api";
+import { useFolderContext } from "../contexts/FolderContext";
 
-
-export function FileUploadArea({ fileUploadProps }: { fileUploadProps: FileUploadProps }) {
-
+export function FileUploadArea() {
     const saveFile = useMutation(api.files.saveFile);
     const generateUploadUrl = useMutation(api.files.generateFileUploadUrl);
-    const { uploadingCount, isUploading, currentFolderId, setUploadingCount, setIsUploading } = fileUploadProps;
+    const { uploadingCount, isUploading, currentFolderId, setUploadingCount, setIsUploading } = useFolderContext();
 
     const handleUploadFiles = async (files: FileList) => {
+
         if (!currentFolderId) {
-            throw new Error("!currentFolderId");
+            toast.error("No folder selected");
+            return;
         };
 
         toast.info(`Uploading ${files.length} files`);
@@ -117,6 +117,7 @@ export function FileUploadArea({ fileUploadProps }: { fileUploadProps: FileUploa
                     </span>
                 </div>
             )}
+            {currentFolderId}
         </div>
     );
 } 

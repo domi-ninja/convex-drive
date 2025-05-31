@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { api } from "../../convex/_generated/api";
 import { Id } from "../../convex/_generated/dataModel";
-import { FileManagerProps } from "../App";
+import { useFolderContext } from "../contexts/FolderContext";
 
 type SortField = 'name' | 'extension' | 'size' | '_creationTime';
 type SortDirection = 'asc' | 'desc';
@@ -32,8 +32,7 @@ type RenamingThing = {
     type: "file" | "folder";
 }
 
-export function FileManageTable({ fileUploadProps }: { fileUploadProps: FileManagerProps }) {
-    const rootFolderId = fileUploadProps.rootFolderId;
+export function FileManageTable() {
     const [selectedFiles, setSelectedFiles] = useState<Set<Id<"files"> | Id<"folders">>>(new Set());
     const [sortCriteria, setSortCriteria] = useState<SortCriteria[]>([{ field: 'extension', direction: 'asc' }, { field: '_creationTime', direction: 'desc' }]);
     const [viewMode, setViewMode] = useState<ViewMode>('list');
@@ -46,10 +45,12 @@ export function FileManageTable({ fileUploadProps }: { fileUploadProps: FileMana
     const [isCreatingFolder, setIsCreatingFolder] = useState(false);
     const [newFolderName, setNewFolderName] = useState<string>("");
 
-    const { setCurrentFolderId, currentFolderId } = fileUploadProps;
-    const currentFolder = useQuery(api.folders.getFolder,
-        currentFolderId ? { folderId: currentFolderId } : "skip"
-    );
+    const {
+        rootFolderId,
+        currentFolderId,
+        setCurrentFolderId,
+        files
+    } = useFolderContext();
 
     const downloadFilesAsZipAction = useAction(api.fileActions.downloadFilesAsZip);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -58,35 +59,26 @@ export function FileManageTable({ fileUploadProps }: { fileUploadProps: FileMana
     const [viewingFile, setViewingFile] = useState<FileOrFolder | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-    const formatFileSize = (bytes?: number) => {
-        if (bytes === undefined) return '0 Bytes';
+    const formatFileSize = (bytes: number): string => {
         if (bytes === 0) return '0 Bytes';
         const k = 1024;
-        const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
         const i = Math.floor(Math.log(bytes) / Math.log(k));
         return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
     };
 
-    const formatDate = (timestamp: number) => {
-        return new Date(timestamp).toLocaleDateString('de-CH', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        });
+    const formatDate = (timestamp: number): string => {
+        return new Date(timestamp).toLocaleDateString();
     };
 
+    // Convert context files to the expected format
     const [filesAndFolders, setFilesAndFolders] = useState<FileOrFolder[]>([]);
-    const filesAndFoldersResult = useQuery(api.folders.getFilesAndFoldersRec,
-        currentFolderId ? { folderId: currentFolderId } : "skip"
-    );
 
     useEffect(() => {
-        if (!filesAndFoldersResult) return;
+        if (!files) return;
 
         let filesList: FileOrFolder[] = [];
-        for (const file of filesAndFoldersResult.files) {
+        for (const file of files.files || []) {
             filesList.push({
                 type: file.type,
                 name: file.name,
@@ -97,7 +89,7 @@ export function FileManageTable({ fileUploadProps }: { fileUploadProps: FileMana
                 url: file.url,
             });
         }
-        for (const folder of filesAndFoldersResult.folders) {
+        for (const folder of files.folders || []) {
             filesList.push({
                 type: "folder",
                 name: folder.name,
@@ -107,7 +99,7 @@ export function FileManageTable({ fileUploadProps }: { fileUploadProps: FileMana
             });
         }
         setFilesAndFolders(filesList);
-    }, [filesAndFoldersResult]);
+    }, [files]);
 
     // Initialize modal state from URL on component mount
     useEffect(() => {
@@ -239,7 +231,7 @@ export function FileManageTable({ fileUploadProps }: { fileUploadProps: FileMana
                     <div className="text-center">
                         <p className="text-lg font-medium text-gray-900">{file.name}</p>
                         <p className="text-sm text-gray-500 mt-1">
-                            {file.type} • {formatFileSize(file.size)}
+                            {file.type} • {formatFileSize(file.size || 0)}
                         </p>
                     </div>
                     <a
@@ -263,7 +255,7 @@ export function FileManageTable({ fileUploadProps }: { fileUploadProps: FileMana
                         <div>
                             <h2 className="text-xl font-semibold text-gray-900">{file.name}</h2>
                             <p className="text-sm text-gray-500">
-                                {file.type} • {formatFileSize(file.size)} • {formatDate(file._creationTime)}
+                                {file.type} • {formatFileSize(file.size || 0)} • {formatDate(file._creationTime)}
                             </p>
                         </div>
                         <div className="flex items-center gap-2">
@@ -468,49 +460,27 @@ export function FileManageTable({ fileUploadProps }: { fileUploadProps: FileMana
     };
 
     const handleSaveRename = async () => {
-        if (!renamingThing) {
-            return;
-        }
+        if (!renamingThing) return;
 
-        if (!renamingThing.id) {
-            return;
-        }
-
-        // TODO do this more methodically everywhere and then also the dupe check and then roll it together
-        // - check for dupe
-        // - keep in mind that file names can collide if ext is different
-        // - check for empty name
-        // - but files without ext can also collid with folders
-        // -fuck 
-        const safeFileName = cleanFileName(renamingThing.name);
-
-        if (renamingThing.type !== "folder") {
-            try {
+        try {
+            const cleanedName = cleanFileName(renamingThing.name);
+            if (renamingThing.type === "file") {
                 await renameFileMutation({
                     fileId: renamingThing.id as Id<"files">,
-                    newName: safeFileName,
+                    newName: cleanedName
                 });
-                toast.success("File renamed successfully");
-                setRenamingThing(null);
-            } catch (error) {
-                console.error("Failed to rename file:", error);
-                toast.error("Failed to rename file");
-            }
-        }
-        else {
-            try {
+            } else {
                 await renameFolderMutation({
                     folderId: renamingThing.id as Id<"folders">,
-                    newName: safeFileName,
+                    newName: cleanedName
                 });
-                toast.success("Folder renamed successfully");
-                setRenamingThing(null);
-            } catch (error) {
-                console.error("Failed to rename folder:", error);
-                toast.error("Failed to rename folder");
             }
+            setRenamingThing(null);
+            toast.success(`${renamingThing.type} renamed successfully`);
+        } catch (error) {
+            console.error(`Failed to rename ${renamingThing.type}:`, error);
+            toast.error(`Failed to rename ${renamingThing.type}`);
         }
-
     };
 
     const handleCancelRename = () => {
@@ -910,7 +880,7 @@ export function FileManageTable({ fileUploadProps }: { fileUploadProps: FileMana
                                                 </span>
                                             </td>
                                             <td className="px-4 py-1 whitespace-nowrap text-sm text-gray-500">
-                                                {file.type === "folder" ? "" : formatFileSize(file.size)}
+                                                {file.type === "folder" ? "" : formatFileSize(file.size || 0)}
                                             </td>
                                             <td className="px-4 py-1 whitespace-nowrap text-sm text-gray-500">
                                                 {formatDate(file._creationTime)}
@@ -944,7 +914,7 @@ export function FileManageTable({ fileUploadProps }: { fileUploadProps: FileMana
                                     ) : (
                                         <div className="h-48 bg-gray-100 flex items-center justify-center flex-col gap-2">
                                             <p className="text-sm text-gray-500">{file.type}</p>
-                                            <p className="text-sm text-gray-500">{formatFileSize(file.size)}</p>
+                                            <p className="text-sm text-gray-500">{formatFileSize(file.size || 0)}</p>
                                             <p className="text-sm text-gray-500">{formatDate(file._creationTime)}</p>
                                         </div>
                                     )}

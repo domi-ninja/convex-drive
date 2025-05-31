@@ -1,10 +1,9 @@
 import { Authenticated, Unauthenticated, useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
-import { FileManagerProps } from "../App";
 import { SignInForm } from "../SignInForm";
 import { FileManagement } from "./FileManagement";
 
-export function Content({ fileUploadProps }: { fileUploadProps: FileManagerProps }) {
+export function Content() {
     const loggedInUser = useQuery(api.auth.loggedInUser);
 
     if (loggedInUser === undefined) {
@@ -23,7 +22,7 @@ export function Content({ fileUploadProps }: { fileUploadProps: FileManagerProps
                 </div>
             </Unauthenticated>
             <Authenticated>
-                <FileManagement fileUploadProps={fileUploadProps} />
+                <FileManagement />
             </Authenticated>
         </div>
     );

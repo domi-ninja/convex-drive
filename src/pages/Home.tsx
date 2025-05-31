@@ -1,8 +1,7 @@
-import { FileManagerProps } from "@/App";
 import { FileManagement } from "@/components";
 
-export function Home({ fileUploadProps }: { fileUploadProps: FileManagerProps }) {
+export function Home() {
     return <div>
-        <FileManagement fileUploadProps={fileUploadProps} />
+        <FileManagement />
     </div>;
 }
