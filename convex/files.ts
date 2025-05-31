@@ -109,6 +109,28 @@ export const renameFile = mutation({
   },
 });
 
+export const moveFile = mutation({
+  args: {
+    fileId: v.id("files"),
+    targetFolderId: v.id("folders")
+  },
+  handler: async (ctx, args): Promise<void> => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
+      throw new Error("User not authenticated");
+    }
+    const file = await ctx.db.get(args.fileId);
+    if (!file || file.userId !== userId) {
+      throw new Error("File not found or user not authorized");
+    }
+    const targetFolder = await ctx.db.get(args.targetFolderId);
+    if (!targetFolder || targetFolder.userId !== userId) {
+      throw new Error("Target folder not found or user not authorized");
+    }
+    await ctx.db.patch(args.fileId, { folderId: args.targetFolderId });
+  },
+});
+
 export const getFileForDownload = query({
   args: { fileId: v.id("files") },
   handler: async (ctx, args): Promise<Doc<"files"> | null> => {

@@ -257,6 +257,44 @@ export const renameFile = mutation({
   },
 });
 
+export const moveFolder = mutation({
+  args: {
+    folderId: v.id("folders"),
+    targetFolderId: v.optional(v.id("folders"))
+  },
+  handler: async (ctx, args): Promise<void> => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
+      throw new Error("User not authenticated");
+    }
+    const folder = await ctx.db.get(args.folderId);
+    if (!folder || folder.userId !== userId) {
+      throw new Error("Folder not found or user not authorized");
+    }
+
+    // Prevent moving a folder into itself or its own descendants
+    if (args.targetFolderId) {
+      const targetFolder = await ctx.db.get(args.targetFolderId);
+      if (!targetFolder || targetFolder.userId !== userId) {
+        throw new Error("Target folder not found or user not authorized");
+      }
+
+      // Check if target folder is a descendant of the source folder
+      let currentFolder = targetFolder;
+      while (currentFolder.folderId) {
+        if (currentFolder.folderId === args.folderId) {
+          throw new Error("Cannot move folder into its own descendant");
+        }
+        const parentFolder = await ctx.db.get(currentFolder.folderId);
+        if (!parentFolder) break;
+        currentFolder = parentFolder;
+      }
+    }
+
+    await ctx.db.patch(args.folderId, { folderId: args.targetFolderId });
+  },
+});
+
 export const getFileForDownload = query({
   args: { fileId: v.id("files") },
   handler: async (ctx, args): Promise<Doc<"files"> | null> => {

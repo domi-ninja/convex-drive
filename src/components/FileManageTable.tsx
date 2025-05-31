@@ -38,10 +38,15 @@ export function FileManageTable() {
     const [viewMode, setViewMode] = useState<ViewMode>('list');
     const [lastSelectedIndex, setLastSelectedIndex] = useState<number | null>(null);
     const [renamingThing, setRenamingThing] = useState<RenamingThing | null>(null);
+    const [draggedItems, setDraggedItems] = useState<Set<Id<"files"> | Id<"folders">>>(new Set());
+    const [dragOverFolder, setDragOverFolder] = useState<Id<"folders"> | null>(null);
+
     const deleteFileMutation = useMutation(api.files.deleteFile);
     const deleteFolderMutation = useMutation(api.folders.deleteFolder);
     const renameFileMutation = useMutation(api.files.renameFile);
     const renameFolderMutation = useMutation(api.folders.renameFolder);
+    const moveFileMutation = useMutation(api.files.moveFile);
+    const moveFolderMutation = useMutation(api.folders.moveFolder);
     const [isCreatingFolder, setIsCreatingFolder] = useState(false);
     const [newFolderName, setNewFolderName] = useState<string>("");
 
@@ -554,6 +559,86 @@ export function FileManageTable() {
         currentFolderId ? { folderId: currentFolderId } : "skip"
     );
 
+    // Drag and Drop handlers
+    const handleDragStart = (e: React.DragEvent, fileId: Id<"files"> | Id<"folders">) => {
+        // If the dragged item is not selected, select it and clear others
+        if (!selectedFiles.has(fileId)) {
+            setSelectedFiles(new Set([fileId]));
+            setDraggedItems(new Set([fileId]));
+        } else {
+            // Use all selected files for dragging
+            setDraggedItems(new Set(selectedFiles));
+        }
+
+        // Set drag data
+        e.dataTransfer.setData('text/plain', fileId);
+        e.dataTransfer.effectAllowed = 'move';
+    };
+
+    const handleDragOver = (e: React.DragEvent) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+    };
+
+    const handleDragEnter = (e: React.DragEvent, folderId: Id<"folders">) => {
+        e.preventDefault();
+        setDragOverFolder(folderId);
+    };
+
+    const handleDragLeave = (e: React.DragEvent) => {
+        // Only clear drag over if we're leaving the drop zone entirely
+        const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+        const x = e.clientX;
+        const y = e.clientY;
+
+        if (x < rect.left || x > rect.right || y < rect.top || y > rect.bottom) {
+            setDragOverFolder(null);
+        }
+    };
+
+    const handleDrop = async (e: React.DragEvent, targetFolderId: Id<"folders">) => {
+        e.preventDefault();
+        setDragOverFolder(null);
+
+        if (draggedItems.size === 0) return;
+
+        try {
+            const promises = Array.from(draggedItems).map((itemId) => {
+                const item = filesAndFolders.find(f => f._id === itemId);
+                if (!item) return Promise.resolve();
+
+                if (item.type === "folder") {
+                    // Don't allow dropping folder into itself
+                    if (itemId === targetFolderId) {
+                        return Promise.resolve();
+                    }
+                    return moveFolderMutation({
+                        folderId: itemId as Id<"folders">,
+                        targetFolderId: targetFolderId
+                    });
+                } else {
+                    return moveFileMutation({
+                        fileId: itemId as Id<"files">,
+                        targetFolderId: targetFolderId
+                    });
+                }
+            });
+
+            await Promise.all(promises);
+            toast.success(`Moved ${draggedItems.size} item(s) successfully`);
+            setSelectedFiles(new Set());
+            setDraggedItems(new Set());
+        } catch (error) {
+            console.error("Failed to move items:", error);
+            toast.error("Failed to move some items");
+        }
+    };
+
+    const handleDragEnd = () => {
+        setDraggedItems(new Set());
+        setDragOverFolder(null);
+    };
+
     return (
         <div>
             {/* className="select-none" */}
@@ -810,7 +895,10 @@ export function FileManageTable() {
                                     {sortedFiles.map((file) => (
                                         <tr
                                             key={file._id}
-                                            className={`hover:bg-gray-50 ${selectedFiles.has(file._id) ? 'bg-blue-50' : ''}`}
+                                            className={`hover:bg-gray-50 ${selectedFiles.has(file._id) ? 'bg-blue-50' : ''} ${draggedItems.has(file._id) ? 'opacity-50' : ''}`}
+                                            draggable={selectedFiles.has(file._id) || draggedItems.has(file._id)}
+                                            onDragStart={(e) => handleDragStart(e, file._id)}
+                                            onDragEnd={handleDragEnd}
                                         >
                                             <td className="px-4 py-1 whitespace-nowrap">
                                                 <input
@@ -849,9 +937,16 @@ export function FileManageTable() {
                                                     </div>
                                                 ) : (
                                                     <div
-                                                        className="text-sm font-medium text-gray-900 max-w-xs cursor-pointer"
+                                                        className={`text-sm font-medium text-gray-900 max-w-xs cursor-pointer ${file.type === "folder" && dragOverFolder === file._id
+                                                            ? "bg-blue-100 border-2 border-blue-300 border-dashed rounded p-2"
+                                                            : ""
+                                                            }`}
                                                         title={file.name}
                                                         onClick={() => handleOpenFile(file._id, file.name, file.type as "file" | "folder")}
+                                                        onDragOver={file.type === "folder" ? handleDragOver : undefined}
+                                                        onDragEnter={file.type === "folder" ? (e) => handleDragEnter(e, file._id as Id<"folders">) : undefined}
+                                                        onDragLeave={file.type === "folder" ? handleDragLeave : undefined}
+                                                        onDrop={file.type === "folder" ? (e) => handleDrop(e, file._id as Id<"folders">) : undefined}
                                                     >
                                                         <span className="group hover:text-blue-600">
                                                             <span className="group-hover:text-blue-600">{file.name}</span>
@@ -908,13 +1003,32 @@ export function FileManageTable() {
                     {viewMode === "grid" && (
                         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 xl:grid-cols-8 gap-2">
                             {sortedFiles.map((file) => (
-                                <div key={file._id} className="bg-white rounded-lg border border-gray-200 w-full">
+                                <div
+                                    key={file._id}
+                                    className={`bg-white rounded-lg border border-gray-200 w-full ${draggedItems.has(file._id) ? 'opacity-50' : ''
+                                        } ${file.type === "folder" && dragOverFolder === file._id
+                                            ? "bg-blue-100 border-2 border-blue-300 border-dashed"
+                                            : ""
+                                        }`}
+                                    draggable={selectedFiles.has(file._id) || draggedItems.has(file._id)}
+                                    onDragStart={(e) => handleDragStart(e, file._id)}
+                                    onDragEnd={handleDragEnd}
+                                    onDragOver={file.type === "folder" ? handleDragOver : undefined}
+                                    onDragEnter={file.type === "folder" ? (e) => handleDragEnter(e, file._id as Id<"folders">) : undefined}
+                                    onDragLeave={file.type === "folder" ? handleDragLeave : undefined}
+                                    onDrop={file.type === "folder" ? (e) => handleDrop(e, file._id as Id<"folders">) : undefined}
+                                >
                                     {IsPreviewable(file.type) && file.url && file.type !== "folder" ? (
                                         <img src={file.url} alt={file.name} className="h-48 w-48 object-contain" />
                                     ) : (
                                         <div className="h-48 bg-gray-100 flex items-center justify-center flex-col gap-2">
+                                            {file.type === "folder" && (
+                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-12 h-12 text-blue-500">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-8.69-6.44l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z" />
+                                                </svg>
+                                            )}
                                             <p className="text-sm text-gray-500">{file.type}</p>
-                                            <p className="text-sm text-gray-500">{formatFileSize(file.size || 0)}</p>
+                                            {file.size && <p className="text-sm text-gray-500">{formatFileSize(file.size || 0)}</p>}
                                             <p className="text-sm text-gray-500">{formatDate(file._creationTime)}</p>
                                         </div>
                                     )}
