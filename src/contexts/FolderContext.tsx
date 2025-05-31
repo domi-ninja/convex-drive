@@ -40,9 +40,19 @@ export function FolderProvider({ children }: { children: React.ReactNode }) {
             if (!user?._id) return;
             try {
                 const folderId = await ensureRootFolder({ userId: user._id });
-                // Set both states in a single update to eliminate race condition
                 setRootFolderId(folderId);
-                setCurrentFolderId(folderId);
+
+                // Check URL for folder parameter
+                const urlParams = new URLSearchParams(window.location.search);
+                const urlFolderId = urlParams.get('folder');
+
+                if (urlFolderId) {
+                    // Use folder from URL if provided
+                    setCurrentFolderId(urlFolderId as Id<"folders">);
+                } else {
+                    // Default to root folder
+                    setCurrentFolderId(folderId);
+                }
             } catch (error) {
                 console.error("Failed to ensure root folder:", error);
                 toast.error("Failed to initialize folder structure");
@@ -51,6 +61,19 @@ export function FolderProvider({ children }: { children: React.ReactNode }) {
 
         initRootFolder();
     }, [user?._id, ensureRootFolder]);
+
+    // Update URL when folder changes
+    useEffect(() => {
+        if (!rootFolderId || !currentFolderId) return;
+
+        const url = new URL(window.location.href);
+        if (currentFolderId !== rootFolderId) {
+            url.searchParams.set('folder', currentFolderId);
+        } else {
+            url.searchParams.delete('folder');
+        }
+        window.history.replaceState({}, '', url.toString());
+    }, [currentFolderId, rootFolderId]);
 
     const value: FolderContextType = {
         rootFolderId,
