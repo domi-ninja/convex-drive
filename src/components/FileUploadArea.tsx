@@ -19,6 +19,8 @@ export function FileUploadArea() {
 
         toast.info(`Uploading ${files.length} files`);
 
+        console.log("currentFolderId", currentFolderId);
+
         setIsUploading(true);
         setUploadingCount(files.length);
         await Promise.all(Array.from(files).map(async (file) => {
@@ -46,8 +48,8 @@ export function FileUploadArea() {
             const { name, extension } = splitFileName(file.name);
 
             await saveFile({
-                storageId, name:
-                    name,
+                storageId,
+                name: name,
                 type: file.type,
                 size: file.size,
                 folderId: currentFolderId,
@@ -81,7 +83,7 @@ export function FileUploadArea() {
             await handleUploadFiles(event.dataTransfer.files);
             event.dataTransfer.clearData();
         },
-        [setIsDragging]
+        [setIsDragging, currentFolderId]
     );
 
     return (
