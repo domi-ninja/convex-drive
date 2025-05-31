@@ -119,7 +119,6 @@ export function FileUploadArea() {
                     </span>
                 </div>
             )}
-            {currentFolderId}
         </div>
     );
 } 

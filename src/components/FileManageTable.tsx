@@ -464,7 +464,7 @@ export function FileManageTable() {
 
         try {
             const cleanedName = cleanFileName(renamingThing.name);
-            if (renamingThing.type === "file") {
+            if (renamingThing.type !== "folder") {
                 await renameFileMutation({
                     fileId: renamingThing.id as Id<"files">,
                     newName: cleanedName
