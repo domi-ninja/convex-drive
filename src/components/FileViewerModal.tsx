@@ -30,7 +30,7 @@ export function FileViewerModal({ viewingFiles, file, setFile, isOpen, onClose }
     useEffect(() => {
         document.addEventListener('keydown', handleKeyDown);
         return () => document.removeEventListener('keydown', handleKeyDown);
-    }, []);
+    }, [file, viewingFiles, setFile, onClose]);
 
     const onNext = () => {
         const currentIndex = viewingFiles.findIndex(f => f._id === file._id);
@@ -135,14 +135,28 @@ export function FileViewerModal({ viewingFiles, file, setFile, isOpen, onClose }
             onClick={handleBackdropClick}
         >
             <div className="bg-white rounded-lg max-w-6xl max-h-[90vh] overflow-auto">
-                <div className="flex items-center justify-between p-4 border-b">
+                <div className="grid grid-cols-3 items-center justify-between p-4 border-b">
                     <div>
                         <h2 className="text-xl font-semibold text-gray-900">{file.name}</h2>
                         <p className="text-sm text-gray-500">
                             {file.type} • {formatFileSize(file.size || 0)} • {formatDate(file._creationTime)}
                         </p>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-row items-center justify-center gap-4 p-4">
+                        <button
+                            onClick={onPrevious}
+                            className="px-4 py-2 text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
+                        >
+                            Prev
+                        </button>
+                        <button
+                            onClick={onNext}
+                            className="px-4 py-2 text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
+                        >
+                            Next
+                        </button>
+                    </div>
+                    <div className="flex items-center gap-2 justify-end">
                         {file.url && (
                             <a
                                 href={file.url}
@@ -165,10 +179,6 @@ export function FileViewerModal({ viewingFiles, file, setFile, isOpen, onClose }
                             </svg>
                         </button>
                     </div>
-                </div>
-                <div className="p-6 flex flex-row items-center justify-center w-full">
-                    <button className="p-4" onClick={onPrevious}>previous</button>
-                    <button onClick={onNext}>next</button>
                 </div>
                 <div>
                     {renderFileContent()}
