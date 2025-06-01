@@ -20,73 +20,27 @@ const FolderContext = createContext<FolderContextType | undefined>(undefined);
 export function FolderProvider({ children }: { children: React.ReactNode }) {
     const ensureRootFolder = useMutation(api.folders.ensureRootFolder);
 
-    // Store root folder ID for UI logic and current folder for navigation
     const [rootFolderId, setRootFolderId] = useState<Id<"folders"> | null>(null);
     const [currentFolderId, setCurrentFolderId] = useState<Id<"folders"> | null>(null);
-    const [urlPath, setUrlPath] = useState<string | null>(null);
-
+    const [initialPath] = useState(window.location.pathname.replace("/folder", "")); // Capture initial path immediately
+    const [pendingPath, setPendingPath] = useState<string | null>(null);
     const [isUploading, setIsUploading] = useState(false);
     const [uploadingCount, setUploadingCount] = useState(0);
 
     const user = useQuery(api.auth.loggedInUser);
 
-    // Use getFilesAndFoldersRec to get both files and folders
     const folderData = useQuery(api.folders.getFilesAndFoldersRec,
         currentFolderId ? { folderId: currentFolderId } : "skip"
     );
 
-    // Resolve path to folder ID when we have all required data
     const resolvedFolderId = useQuery(api.folders.resolveFolderPath,
-        urlPath && user?._id && rootFolderId ? {
-            path: urlPath,
+        pendingPath && user?._id && rootFolderId ? {
+            path: pendingPath,
             userId: user._id,
             rootFolderId: rootFolderId
         } : "skip"
     );
 
-    // Effect to ensure root folder exists and get its ID
-    useEffect(() => {
-        async function initRootFolder() {
-            if (!user?._id) return;
-            try {
-                const folderId = await ensureRootFolder({ userId: user._id });
-                setRootFolderId(folderId);
-
-                // Check URL pathname for folder path
-                const pathFromUrl = window.location.pathname === "/" ? "/" : window.location.pathname;
-
-                if (pathFromUrl !== "/") {
-                    setUrlPath(pathFromUrl);
-                } else {
-                    // Default to root folder
-                    setCurrentFolderId(folderId);
-                }
-            } catch (error) {
-                console.error("Failed to ensure root folder:", error);
-                toast.error("Failed to initialize folder structure");
-            }
-        }
-
-        initRootFolder();
-    }, [user?._id, ensureRootFolder]);
-
-    // Handle resolved folder ID from path
-    useEffect(() => {
-        if (urlPath && resolvedFolderId !== undefined) {
-            if (resolvedFolderId) {
-                setCurrentFolderId(resolvedFolderId);
-            } else {
-                // Path not found, default to root and navigate to root
-                if (rootFolderId) {
-                    setCurrentFolderId(rootFolderId);
-                }
-                window.history.replaceState({}, '', '/');
-            }
-            setUrlPath(null); // Clear urlPath after processing
-        }
-    }, [resolvedFolderId, urlPath, rootFolderId]);
-
-    // Get current folder path for URL updates
     const currentFolderPath = useQuery(api.folders.getFolderPath,
         currentFolderId && rootFolderId ? {
             folderId: currentFolderId,
@@ -94,15 +48,60 @@ export function FolderProvider({ children }: { children: React.ReactNode }) {
         } : "skip"
     );
 
-    // Update URL when folder changes
+    // Initialize root folder
     useEffect(() => {
-        if (!rootFolderId || !currentFolderId || currentFolderPath === undefined) return;
+        if (!user?._id || rootFolderId) return;
+
+        async function init() {
+            if (!user?._id) return;
+
+            try {
+                const rootFId = await ensureRootFolder({ userId: user._id });
+                setRootFolderId(rootFId);
+            } catch (error) {
+                console.error("Failed to initialize root folder:", error);
+                toast.error("Failed to initialize folder structure");
+            }
+        }
+
+        init();
+    }, [user?._id, rootFolderId, ensureRootFolder]);
+
+    // Handle initial path resolution once we have user and root folder
+    useEffect(() => {
+        if (!user?._id || !rootFolderId || currentFolderId !== null) return;
+
+        if (initialPath === "/") {
+            setCurrentFolderId(rootFolderId);
+        } else {
+            setPendingPath(initialPath);
+        }
+    }, [user?._id, rootFolderId, currentFolderId, initialPath]);
+
+    // Handle path resolution
+    useEffect(() => {
+        if (!pendingPath || resolvedFolderId === undefined || !rootFolderId) return;
+
+        if (resolvedFolderId) {
+            setCurrentFolderId(resolvedFolderId);
+        } else {
+            setCurrentFolderId(rootFolderId);
+            window.history.replaceState({}, '', '/');
+            toast.error("Folder not found");
+        }
+
+        setPendingPath(null);
+    }, [resolvedFolderId, pendingPath, rootFolderId]);
+
+    // Update URL when folder changes (but not during initial load)
+    useEffect(() => {
+        if (!currentFolderPath || pendingPath || !currentFolderId) return;
 
         const newPath = currentFolderPath === "/" ? "/" : currentFolderPath;
         if (window.location.pathname !== newPath) {
-            window.history.replaceState({}, '', newPath);
+            window.history.replaceState({}, '', `/folder${newPath}`);
         }
-    }, [currentFolderPath, rootFolderId]);
+    }, [currentFolderPath, pendingPath, currentFolderId]);
 
     const value: FolderContextType = {
         rootFolderId,
