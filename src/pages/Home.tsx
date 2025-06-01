@@ -1,7 +1,7 @@
-import { FileManagement } from "@/components";
+import { FileManageTable } from "../components/FileManageTable";
 
 export function Home() {
     return <div>
-        <FileManagement />
+        <FileManageTable />
     </div>;
 }

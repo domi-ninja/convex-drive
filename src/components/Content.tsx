@@ -1,7 +1,7 @@
 import { Authenticated, Unauthenticated, useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { SignInForm } from "../SignInForm";
-import { FileManagement } from "./FileManagement";
+import { FileManageTable } from "./FileManageTable";
 
 export function Content() {
     const loggedInUser = useQuery(api.auth.loggedInUser);
@@ -22,7 +22,7 @@ export function Content() {
                 </div>
             </Unauthenticated>
             <Authenticated>
-                <FileManagement />
+                <FileManageTable />
             </Authenticated>
         </div>
     );
