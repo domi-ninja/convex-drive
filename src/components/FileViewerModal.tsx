@@ -2,8 +2,10 @@ import { useEffect } from "react";
 import { FileOrFolder, formatDate, formatFileSize } from "./FileManageTable";
 
 // Modal component moved inside to access helper functions
-export function FileViewerModal({ file, isOpen, onClose }: {
+export function FileViewerModal({ viewingFiles, file, setFile, isOpen, onClose }: {
+    viewingFiles: FileOrFolder[];
     file: FileOrFolder | null;
+    setFile: (file: FileOrFolder) => void;
     isOpen: boolean;
     onClose: () => void;
 }) {
@@ -18,6 +20,10 @@ export function FileViewerModal({ file, isOpen, onClose }: {
     const handleKeyDown = (e: KeyboardEvent) => {
         if (e.key === 'Escape') {
             onClose();
+        } else if (e.key === 'ArrowLeft' || e.key === 'j') {
+            onPrevious();
+        } else if (e.key === 'ArrowRight' || e.key === 'k') {
+            onNext();
         }
     };
 
@@ -26,10 +32,22 @@ export function FileViewerModal({ file, isOpen, onClose }: {
         return () => document.removeEventListener('keydown', handleKeyDown);
     }, []);
 
+    const onNext = () => {
+        const currentIndex = viewingFiles.findIndex(f => f._id === file._id);
+        const nextIndex = (currentIndex + 1) % viewingFiles.length;
+        setFile(viewingFiles[nextIndex]);
+    };
+
+    const onPrevious = () => {
+        const currentIndex = viewingFiles.findIndex(f => f._id === file._id);
+        const previousIndex = (currentIndex - 1 + viewingFiles.length) % viewingFiles.length;
+        setFile(viewingFiles[previousIndex]);
+    };
+
     const renderFileContent = () => {
         if (!file.url) {
             return (
-                <div className="flex items-center justify-center h-96 bg-gray-100 rounded-lg">
+                <div className="flex items-center justify-center h-96 bg-gray-100 rounded-lg w-full">
                     <span className="text-gray-500">File not available</span>
                 </div>
             );
@@ -40,7 +58,7 @@ export function FileViewerModal({ file, isOpen, onClose }: {
                 <img
                     src={file.url}
                     alt={file.name}
-                    className="max-w-full max-h-[70vh] object-contain rounded-lg"
+                    className="max-w-full max-h-[70vh] object-contain rounded-lg w-full"
                 />
             );
         }
@@ -50,7 +68,7 @@ export function FileViewerModal({ file, isOpen, onClose }: {
                 <video
                     src={file.url}
                     controls
-                    className="max-w-full max-h-[70vh] rounded-lg"
+                    className="max-w-full max-h-[70vh] rounded-lg w-full"
                 >
                     Your browser does not support the video tag.
                 </video>
@@ -59,7 +77,7 @@ export function FileViewerModal({ file, isOpen, onClose }: {
 
         if (file.type?.startsWith("audio/")) {
             return (
-                <div className="flex flex-col items-center gap-4 p-8">
+                <div className="flex flex-col items-center gap-4 p-8 w-full">
                     <div className="text-6xl">🎵</div>
                     <audio src={file.url} controls className="w-full max-w-md">
                         Your browser does not support the audio tag.
@@ -72,7 +90,7 @@ export function FileViewerModal({ file, isOpen, onClose }: {
             return (
                 <iframe
                     src={file.url}
-                    className="w-full h-[70vh] rounded-lg"
+                    className="w-full h-[70vh] rounded-lg w-full"
                     title={file.name}
                 />
             );
@@ -80,10 +98,10 @@ export function FileViewerModal({ file, isOpen, onClose }: {
 
         if (file.type?.startsWith("text/") || file.type === "application/json") {
             return (
-                <div className="bg-gray-100 p-4 rounded-lg h-96 overflow-auto">
+                <div className="bg-gray-100 p-4 rounded-lg h-96 overflow-auto w-full">
                     <iframe
                         src={file.url}
-                        className="w-full h-full border-none"
+                        className="w-full h-full border-none w-full"
                         title={file.name}
                     />
                 </div>
@@ -148,7 +166,11 @@ export function FileViewerModal({ file, isOpen, onClose }: {
                         </button>
                     </div>
                 </div>
-                <div className="p-6">
+                <div className="p-6 flex flex-row items-center justify-center w-full">
+                    <button className="p-4" onClick={onPrevious}>previous</button>
+                    <button onClick={onNext}>next</button>
+                </div>
+                <div>
                     {renderFileContent()}
                 </div>
             </div>

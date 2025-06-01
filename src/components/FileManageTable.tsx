@@ -952,6 +952,11 @@ export function FileManageTable() {
                 file={viewingFile}
                 isOpen={isModalOpen}
                 onClose={closeFileModal}
+                viewingFiles={sortedFiles.filter(file =>
+                    file.type !== "folder" &&
+                    (selectedFiles.size === 0 || selectedFiles.has(file._id))
+                )}
+                setFile={setViewingFile}
             />
         </div >
     );
