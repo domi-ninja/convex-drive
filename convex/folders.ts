@@ -315,3 +315,85 @@ export const deleteTemporaryZip = internalMutation({
     }
   },
 });
+
+export const findFolderByName = query({
+  args: {
+    parentFolderId: v.optional(v.id("folders")),
+    name: v.string(),
+    userId: v.id("users")
+  },
+  returns: v.union(v.id("folders"), v.null()),
+  handler: async (ctx, args): Promise<Id<"folders"> | null> => {
+    const folder = await ctx.db
+      .query("folders")
+      .withIndex("by_folderId", (q) => q.eq("folderId", args.parentFolderId))
+      .filter((q) => q.and(
+        q.eq(q.field("name"), args.name),
+        q.eq(q.field("userId"), args.userId)
+      ))
+      .first();
+
+    return folder?._id || null;
+  },
+});
+
+export const resolveFolderPath = query({
+  args: {
+    path: v.string(),
+    userId: v.id("users"),
+    rootFolderId: v.id("folders")
+  },
+  returns: v.union(v.id("folders"), v.null()),
+  handler: async (ctx, args): Promise<Id<"folders"> | null> => {
+    // Handle root path
+    if (args.path === "/" || args.path === "" || args.path === "Root") {
+      return args.rootFolderId;
+    }
+
+    // Split path and remove empty segments
+    const pathSegments = args.path.split('/').filter(segment => segment.length > 0);
+
+    // Start from root folder
+    let currentFolderId: Id<"folders"> | null = args.rootFolderId;
+
+    // Traverse path segment by segment
+    for (const segment of pathSegments) {
+      if (!currentFolderId) return null;
+
+      currentFolderId = await ctx.runQuery(api.folders.findFolderByName, {
+        parentFolderId: currentFolderId,
+        name: segment,
+        userId: args.userId
+      });
+
+      if (!currentFolderId) return null;
+    }
+
+    return currentFolderId;
+  },
+});
+
+export const getFolderPath = query({
+  args: {
+    folderId: v.id("folders"),
+    rootFolderId: v.id("folders")
+  },
+  returns: v.string(),
+  handler: async (ctx, args): Promise<string> => {
+    // If this is the root folder, return "/"
+    if (args.folderId === args.rootFolderId) {
+      return "/";
+    }
+
+    const folderPath = await ctx.runQuery(api.folders.getFolderPathRec, {
+      folderId: args.folderId
+    });
+
+    // Skip the root folder and build path from remaining folders
+    const pathSegments = folderPath
+      .slice(1) // Skip root folder
+      .map(folder => folder.name);
+
+    return "/" + pathSegments.join("/");
+  },
+});
