@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { api } from "../../convex/_generated/api";
 import { Id } from "../../convex/_generated/dataModel";
 import { useFolderContext } from "../contexts/FolderContext";
+import { FileTreeModal } from "./FileTreeModal";
 import { FileViewerModal } from "./FileViewerModal";
 
 type SortField = 'name' | 'extension' | 'size' | '_creationTime';
@@ -77,7 +78,7 @@ export function FileManageTable() {
     // Modal state management with URL persistence
     const [viewingFile, setViewingFile] = useState<FileOrFolder | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
-
+    const [isTreeModalOpen, setIsTreeModalOpen] = useState(false);
 
     // Convert context files to the expected format
     const [filesAndFolders, setFilesAndFolders] = useState<FileOrFolder[]>([]);
@@ -446,15 +447,17 @@ export function FileManageTable() {
         }
     };
 
-    const handleDrop = async (e: React.DragEvent, targetFolderId: Id<"folders">) => {
+    const handleDropOnFolder = async (e: React.DragEvent, targetFolderId: Id<"folders">) => {
         e.preventDefault();
         setDragOverFolder(null);
+        moveFiles(targetFolderId);
+    };
 
-        console.log("draggedItems", draggedItems);
-        if (draggedItems.size === 0) return;
+    const moveFiles = async (targetFolderId: Id<"folders">) => {
+        if (selectedFiles.size === 0) return;
 
         try {
-            const promises = Array.from(draggedItems).map((itemId) => {
+            const promises = Array.from(selectedFiles).map((itemId) => {
                 const item = filesAndFolders.find(f => f._id === itemId);
                 if (!item) return Promise.resolve();
 
@@ -476,18 +479,26 @@ export function FileManageTable() {
             });
 
             await Promise.all(promises);
-            toast.success(`Moved ${draggedItems.size} item(s) successfully`);
+            toast.success(`Moved ${selectedFiles.size} item(s) successfully`);
             setSelectedFiles(new Set());
             setDraggedItems(new Set());
         } catch (error) {
             console.error("Failed to move items:", error);
             toast.error("Failed to move some items");
         }
-    };
+    }
 
     const handleDragEnd = () => {
         setDraggedItems(new Set());
         setDragOverFolder(null);
+    };
+
+    const handleFiletreemodalNavigate = (folderId: Id<"folders">) => {
+        if (selectedFiles.size > 0) {
+            moveFiles(folderId);
+        } else {
+            setCurrentFolderId(folderId);
+        }
     };
 
     return (
@@ -576,6 +587,7 @@ export function FileManageTable() {
                                 </button>
                                 {isMenuOpen && (
                                     <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 border border-gray-200">
+
                                         <button
                                             onClick={(e) => {
                                                 e.stopPropagation();
@@ -604,6 +616,8 @@ export function FileManageTable() {
                                             </svg>
                                             Delete
                                         </button>
+
+
                                     </div>
                                 )}
                             </div>
@@ -636,6 +650,17 @@ export function FileManageTable() {
                             className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
                         >
                             Delete
+                        </button>
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setIsTreeModalOpen(true);
+                                setIsMenuOpen(false);
+                            }}
+                            className="px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-red-600 disabled:opacity-50 
+                            disabled:cursor-not-allowed shadow-sm disabled:bg-gray-300"
+                        >
+                            Move
                         </button>
                     </div>
 
@@ -789,7 +814,7 @@ export function FileManageTable() {
                                                         onDragOver={file.type === "folder" ? handleDragOver : undefined}
                                                         onDragEnter={file.type === "folder" ? (e) => handleDragEnter(e, file._id as Id<"folders">) : undefined}
                                                         onDragLeave={file.type === "folder" ? handleDragLeave : undefined}
-                                                        onDrop={file.type === "folder" ? (e) => handleDrop(e, file._id as Id<"folders">) : undefined}
+                                                        onDrop={file.type === "folder" ? (e) => handleDropOnFolder(e, file._id as Id<"folders">) : undefined}
                                                     >
                                                         <span className="group hover:text-blue-600">
                                                             <span className="group-hover:text-blue-600">{file.name}</span>
@@ -859,7 +884,7 @@ export function FileManageTable() {
                                     onDragOver={file.type === "folder" ? handleDragOver : undefined}
                                     onDragEnter={file.type === "folder" ? (e) => handleDragEnter(e, file._id as Id<"folders">) : undefined}
                                     onDragLeave={file.type === "folder" ? handleDragLeave : undefined}
-                                    onDrop={file.type === "folder" ? (e) => handleDrop(e, file._id as Id<"folders">) : undefined}
+                                    onDrop={file.type === "folder" ? (e) => handleDropOnFolder(e, file._id as Id<"folders">) : undefined}
                                 >
                                     {IsPreviewable(file.type) && file.url && file.type !== "folder" ? (
                                         <img src={file.url} alt={file.name} className="h-48 w-48 object-contain" />
@@ -957,6 +982,11 @@ export function FileManageTable() {
                     (selectedFiles.size === 0 || selectedFiles.has(file._id))
                 )}
                 setFile={setViewingFile}
+            />
+            <FileTreeModal
+                isOpen={isTreeModalOpen}
+                onClose={() => setIsTreeModalOpen(false)}
+                onNavigate={handleFiletreemodalNavigate}
             />
         </div >
     );

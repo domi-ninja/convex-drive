@@ -22,6 +22,7 @@ export default function App() {
             <Authenticated>
               <Routes>
                 <Route path="/" element={<Home />} />
+                <Route path="/folder" element={<Home />} />
                 <Route path="/folder/:path/*" element={<Home />} />
                 <Route path="/profile" element={<Profile />} />
               </Routes>
