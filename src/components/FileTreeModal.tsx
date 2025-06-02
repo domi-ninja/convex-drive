@@ -107,7 +107,7 @@ export function FileTreeModal({ isOpen, onClose, onNavigate }: FileTreeModalProp
                                 e.stopPropagation();
                                 toggleNode(node._id);
                             }}
-                            className="w-4 h-4 flex items-center justify-center text-gray-500 hover:text-gray-700"
+                            className="p-2 border-2 border-gray-200 rounded-md flex items-center justify-center text-gray-500 hover:text-gray-700"
                         >
                             {isExpanded ? (
                                 <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
@@ -141,7 +141,7 @@ export function FileTreeModal({ isOpen, onClose, onNavigate }: FileTreeModalProp
                         {node.folders.map((childNode: any) => renderTreeNode(childNode, level + 1))}
                     </div>
                 )}
-
+                {/* 
                 {isExpanded && node.files && node.files.length > 0 && (
                     <div className="ml-2">
                         {node.files.map((file: any) => (
@@ -158,7 +158,7 @@ export function FileTreeModal({ isOpen, onClose, onNavigate }: FileTreeModalProp
                             </div>
                         ))}
                     </div>
-                )}
+                )} */}
             </div>
         );
     };
