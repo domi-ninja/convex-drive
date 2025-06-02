@@ -1,5 +1,5 @@
 import { cleanFileName } from "@/lib/file";
-import { useAction, useMutation, useQuery } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { api } from "../../convex/_generated/api";
@@ -72,7 +72,6 @@ export function FileManageTable() {
     } = useFolderContext();
 
 
-    const downloadFilesAsZipAction = useAction(api.fileActions.downloadFilesAsZip);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
     // Modal state management with URL persistence
@@ -281,25 +280,53 @@ export function FileManageTable() {
         try {
             const fileOrFolder = filesAndFolders.filter(f => selectedFiles.size == 0 || selectedFiles.has(f._id));
 
-            const result = await downloadFilesAsZipAction({
-                filesOrFolders: fileOrFolder.map(f => ({
-                    type: f.type!,
-                    name: f.name,
-                    _id: f._id,
-                })),
-            }) as { url: string | null; name: string } | undefined;
+            // Get the Convex deployment URL and convert it to HTTP endpoint format
+            const convexUrl = (import.meta.env.VITE_CONVEX_URL as string).replace("convex.cloud", "convex.site");
+            const deploymentUrl = convexUrl.replace('/api', ''); // Remove /api suffix for HTTP endpoints
 
-            if (result && result.url) {
-                const link = document.createElement("a");
-                link.href = result.url;
-                link.download = result.name;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                toast.success("Download started.");
-            } else {
-                toast.error("Could not prepare download. The zip might be empty or an error occurred.");
+            const response = await fetch(`${deploymentUrl}/download-zip`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    filesOrFolders: fileOrFolder.map(f => ({
+                        type: f.type!,
+                        name: f.name,
+                        _id: f._id,
+                    })),
+                }),
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
+
+            // Create blob from response and trigger download
+            const blob = await response.blob();
+            const url = URL.createObjectURL(blob);
+
+            // Extract filename from Content-Disposition header if available
+            const contentDisposition = response.headers.get('Content-Disposition');
+            let filename = 'download.zip';
+            if (contentDisposition && contentDisposition.includes('filename=')) {
+                const filenameMatch = contentDisposition.match(/filename="?([^"]+)"?/);
+                if (filenameMatch) {
+                    filename = filenameMatch[1];
+                }
+            }
+
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            // Clean up the blob URL
+            URL.revokeObjectURL(url);
+
+            toast.success("Download started.");
             setSelectedFiles(new Set());
         } catch (error) {
             console.error("Failed to download files:", error);

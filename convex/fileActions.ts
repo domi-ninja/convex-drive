@@ -4,9 +4,8 @@ import JSZip from "jszip";
 import { api } from "./_generated/api";
 import { Id } from "./_generated/dataModel";
 import { action } from "./_generated/server";
-type DownloadResult = { url: string | null; name: string };
 
-export const downloadFilesAsZip = action({
+export const downloadFilesAsZipBytes = action({
   args: {
     filesOrFolders: v.array(
       v.object({
@@ -17,8 +16,8 @@ export const downloadFilesAsZip = action({
     ),
   },
   returns: v.object({
-    url: v.string(),
-    name: v.string(),
+    content: v.bytes(),
+    filename: v.string(),
   }),
   handler: async (ctx, args) => {
     const { filesOrFolders } = args;
@@ -28,9 +27,14 @@ export const downloadFilesAsZip = action({
       const files = await ctx.runQuery(api.files.listFilesInFolder, { folderId });
 
       for (const file of files) {
-        const blob = await ctx.storage.get(file.storageId);
-        if (blob) {
-          currentZip.file(file.name, blob);
+        const fileDoc = await ctx.runQuery(api.folders.getFileForDownload, {
+          fileId: file._id
+        });
+        if (fileDoc) {
+          const blob = await ctx.storage.get(fileDoc.storageId);
+          if (blob) {
+            currentZip.file(file.name, blob);
+          }
         }
       }
 
@@ -43,7 +47,7 @@ export const downloadFilesAsZip = action({
 
     for (const fileOrFolder of filesOrFolders) {
       if (fileOrFolder.type === "folder") {
-        //await zipRec(zip, fileOrFolder._id as Id<"folders">);
+        await zipRec(zip.folder(fileOrFolder.name) as JSZip, fileOrFolder._id as Id<"folders">);
       } else {
         // Get file details first to get the storageId
         const fileDoc = await ctx.runQuery(api.folders.getFileForDownload, {
@@ -51,7 +55,6 @@ export const downloadFilesAsZip = action({
         });
         if (fileDoc) {
           const fileBlob = await ctx.storage.get(fileDoc.storageId);
-          console.log("fileBlob", fileBlob);
           if (fileBlob) {
             zip.file(fileOrFolder.name, fileBlob);
           }
@@ -59,7 +62,19 @@ export const downloadFilesAsZip = action({
       }
     }
 
-    const content = await zip.generateAsync({ type: "blob" });
-    return { url: URL.createObjectURL(content), name: "download.zip" };
+    // Generate zip as ArrayBuffer
+    const content = await zip.generateAsync({ type: "arraybuffer" });
+
+    // Generate a descriptive filename
+    const timestamp = new Date().toISOString().slice(0, 10); // YYYY-MM-DD format
+    const filename = filesOrFolders.length === 1
+      ? `${filesOrFolders[0].name}.zip`
+      : `files_${timestamp}.zip`;
+
+    return {
+      content: content as ArrayBuffer,
+      filename
+    };
   }
 });
+
