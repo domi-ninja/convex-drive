@@ -76,7 +76,7 @@ export const downloadFilesAsZipBytes = action({
     const content = await zip.generateAsync({ type: "arraybuffer" });
 
     // Generate a descriptive filename
-    const timestamp = new Date().toISOString().slice(0, 16); // YYYY-MM-DD HH:MM format
+    const timestamp = new Date().toISOString().slice(0, 19); // YYYY-MM-DD HH:MM:SS format
     const filename = filesOrFolders.length === 1
       ? `${filesOrFolders[0].name}.zip`
       : `files_${timestamp}.zip`;
