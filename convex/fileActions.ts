@@ -55,6 +55,7 @@ export const downloadFilesAsZipBytes = action({
         });
         if (fileDoc) {
           const fileBlob = await ctx.storage.get(fileDoc.storageId);
+          console.log("fileBlob", fileBlob);
           if (fileBlob) {
             zip.file(fileOrFolder.name, fileBlob);
           }

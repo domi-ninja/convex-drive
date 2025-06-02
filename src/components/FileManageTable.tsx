@@ -281,10 +281,8 @@ export function FileManageTable() {
             const fileOrFolder = filesAndFolders.filter(f => selectedFiles.size == 0 || selectedFiles.has(f._id));
 
             // Get the Convex deployment URL and convert it to HTTP endpoint format
-            const convexUrl = (import.meta.env.VITE_CONVEX_URL as string).replace("convex.cloud", "convex.site");
-            const deploymentUrl = convexUrl.replace('/api', ''); // Remove /api suffix for HTTP endpoints
-
-            const response = await fetch(`${deploymentUrl}/download-zip`, {
+            const convexSiteUrl = (import.meta.env.VITE_CONVEX_URL as string).replace("convex.cloud", "convex.site");
+            const response = await fetch(`${convexSiteUrl}/download-zip`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
