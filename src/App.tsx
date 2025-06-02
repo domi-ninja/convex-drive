@@ -8,6 +8,7 @@ import { Profile } from "./pages/Profile";
 import { SignInForm } from "./SignInForm";
 
 export default function App() {
+
   return (
     <Router>
       <div id="background" className="min-h-screen flex flex-col">

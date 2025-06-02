@@ -48,6 +48,7 @@ export function FolderProvider({ children }: { children: React.ReactNode }) {
         } : "skip"
     );
 
+
     // Initialize root folder
     useEffect(() => {
         if (!user?._id || rootFolderId) return;
@@ -99,7 +100,7 @@ export function FolderProvider({ children }: { children: React.ReactNode }) {
 
         const newPath = currentFolderPath === "/" ? "/" : currentFolderPath;
         if (window.location.pathname !== newPath) {
-            window.history.replaceState({}, '', `/folder${newPath}`);
+            window.history.pushState({}, '', `/folder${newPath}`);
         }
     }, [currentFolderPath, pendingPath, currentFolderId]);
 

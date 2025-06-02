@@ -13,9 +13,9 @@ export default function Header() {
         <header className="sticky top-0 z-10 bg-white/80 backdrop-blur-sm border-b shadow-sm">
             {/* Main header row */}
             <div className="h-14 sm:h-16 flex justify-between items-center px-3 sm:px-4">
-                <Link to="/" className="text-lg sm:text-xl font-semibold text-primary hover:text-primary-hover transition-colors flex-shrink-0">
+                <a href="/" className="text-lg sm:text-xl font-semibold text-primary hover:text-primary-hover transition-colors flex-shrink-0">
                     <span className="">Zero Drive</span>
-                </Link>
+                </a>
                 <Authenticated>
                     {isMainRoute && (
                         <div className="hidden sm:block">
