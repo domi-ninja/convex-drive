@@ -144,7 +144,7 @@ export function FileTreeModal({ isOpen, onClose, onNavigate }: FileTreeModalProp
 
                 {isExpanded && node.files && node.files.length > 0 && (
                     <div className="ml-2">
-                        {node.files.slice(0, 5).map((file: any) => (
+                        {node.files.map((file: any) => (
                             <div
                                 key={file._id}
                                 className="flex items-center gap-2 px-2 py-1 text-sm text-gray-600"
@@ -157,14 +157,6 @@ export function FileTreeModal({ isOpen, onClose, onNavigate }: FileTreeModalProp
                                 <span className="truncate">{file.name}</span>
                             </div>
                         ))}
-                        {node.files.length > 5 && (
-                            <div
-                                className="text-xs text-gray-500 px-2 py-1"
-                                style={{ paddingLeft: `${(level + 1) * 20 + 8}px` }}
-                            >
-                                ... and {node.files.length - 5} more files
-                            </div>
-                        )}
                     </div>
                 )}
             </div>
