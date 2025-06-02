@@ -277,18 +277,16 @@ export function FileManageTable() {
             toast.info("No files selected for download.");
             return;
         }
-        try {
-            const fileOrFolder = filesAndFolders.filter(f => selectedFiles.size == 0 || selectedFiles.has(f._id));
 
-            // Get the Convex deployment URL and convert it to HTTP endpoint format
+        try {
+            const selectedItems = filesAndFolders.filter(f => selectedFiles.has(f._id));
             const convexSiteUrl = (import.meta.env.VITE_CONVEX_URL as string).replace("convex.cloud", "convex.site");
+
             const response = await fetch(`${convexSiteUrl}/download-zip`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    filesOrFolders: fileOrFolder.map(f => ({
+                    filesOrFolders: selectedItems.map(f => ({
                         type: f.type!,
                         name: f.name,
                         _id: f._id,
@@ -300,28 +298,34 @@ export function FileManageTable() {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
-            // Create blob from response and trigger download
             const blob = await response.blob();
             const url = URL.createObjectURL(blob);
 
-            // Extract filename from Content-Disposition header if available
+            // Extract filename or use default
             const contentDisposition = response.headers.get('Content-Disposition');
-            let filename = 'download.zip';
-            if (contentDisposition && contentDisposition.includes('filename=')) {
-                const filenameMatch = contentDisposition.match(/filename="?([^"]+)"?/);
-                if (filenameMatch) {
-                    filename = filenameMatch[1];
-                }
-            }
+            const filename = (() => {
+                if (!contentDisposition) return 'download.zip';
 
-            const link = document.createElement("a");
-            link.href = url;
-            link.download = filename;
+                // Try to match quoted filename first: filename="filename.ext"
+                const quotedMatch = contentDisposition.match(/filename\s*=\s*"([^"]+)"/i);
+                if (quotedMatch) return quotedMatch[1];
+
+                // Try to match unquoted filename: filename=filename.ext
+                const unquotedMatch = contentDisposition.match(/filename\s*=\s*([^;,\s]+)/i);
+                if (unquotedMatch) return unquotedMatch[1];
+
+                return 'download.zip';
+            })();
+
+            // Trigger download
+            const link = Object.assign(document.createElement("a"), {
+                href: url,
+                download: filename
+            });
+
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-
-            // Clean up the blob URL
             URL.revokeObjectURL(url);
 
             toast.success("Download started.");

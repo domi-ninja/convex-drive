@@ -33,16 +33,18 @@ export const downloadFilesAsZipBytes = action({
         if (fileDoc) {
           const blob = await ctx.storage.get(fileDoc.storageId);
           if (blob) {
-            currentZip.file(file.name, blob);
+            // Convert Convex Blob to ArrayBuffer because JSZip doesn't support this kind of Blobs
+            const arrayBuffer = await blob.arrayBuffer();
+            currentZip.file(file.name + "." + fileDoc.extension, arrayBuffer);
           }
         }
       }
 
-      const folders = await ctx.runQuery(api.folders.listFoldersInFolder, { folderId });
+      // const folders = await ctx.runQuery(api.folders.listFoldersInFolder, { folderId });
 
-      for (const folder of folders) {
-        await zipRec(currentZip.folder(folder.name) as JSZip, folder._id);
-      }
+      // for (const folder of folders) {
+      //   await zipRec(currentZip.folder(folder.name) as JSZip, folder._id);
+      // }
     }
 
     for (const fileOrFolder of filesOrFolders) {
@@ -55,9 +57,16 @@ export const downloadFilesAsZipBytes = action({
         });
         if (fileDoc) {
           const fileBlob = await ctx.storage.get(fileDoc.storageId);
-          console.log("fileBlob", fileBlob);
           if (fileBlob) {
-            zip.file(fileOrFolder.name, fileBlob);
+            // Convert Convex Blob to ArrayBuffer for JSZip compatibility
+            const arrayBuffer = await fileBlob.arrayBuffer();
+
+            // Use the file's actual name with extension
+            const fileName = fileDoc.extension ?
+              `${fileOrFolder.name}.${fileDoc.extension}` :
+              fileOrFolder.name;
+
+            zip.file(fileName, arrayBuffer);
           }
         }
       }
@@ -67,7 +76,7 @@ export const downloadFilesAsZipBytes = action({
     const content = await zip.generateAsync({ type: "arraybuffer" });
 
     // Generate a descriptive filename
-    const timestamp = new Date().toISOString().slice(0, 10); // YYYY-MM-DD format
+    const timestamp = new Date().toISOString().slice(0, 16); // YYYY-MM-DD HH:MM format
     const filename = filesOrFolders.length === 1
       ? `${filesOrFolders[0].name}.zip`
       : `files_${timestamp}.zip`;

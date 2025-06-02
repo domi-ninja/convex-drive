@@ -13,19 +13,41 @@ http.route({
     path: "/download-zip",
     method: "POST",
     handler: httpAction(async (ctx, request) => {
-        const body = await request.json();
-        const fileOrFolders = body.filesOrFolders;
+        let fileOrFolders;
+
+        // Handle both JSON and form data
+        const contentType = request.headers.get("content-type");
+        if (contentType?.includes("application/json")) {
+            const body = await request.json();
+            fileOrFolders = body.filesOrFolders;
+        } else if (contentType?.includes("application/x-www-form-urlencoded")) {
+            const formData = await request.formData();
+            const filesOrFoldersString = formData.get("filesOrFolders") as string;
+            fileOrFolders = JSON.parse(filesOrFoldersString);
+        } else {
+            // Fallback: try to parse as JSON
+            const body = await request.json();
+            fileOrFolders = body.filesOrFolders;
+        }
+
         const result = await ctx.runAction(api.fileActions.downloadFilesAsZipBytes, {
             filesOrFolders: fileOrFolders
-        })
+        });
+
         console.log(result);
         return new Response(result.content, {
             headers: {
                 "Content-Disposition": `attachment; filename="${result.filename}"`,
                 "Content-Type": "application/zip",
+                "Content-Length": result.content.byteLength.toString(),
                 "Access-Control-Allow-Origin": "http://localhost:5173",
                 "Access-Control-Allow-Methods": "POST, OPTIONS",
                 "Access-Control-Allow-Headers": "Content-Type",
+                "Access-Control-Expose-Headers": "Content-Disposition",
+                // Add cache headers for better performance
+                "Cache-Control": "no-cache, no-store, must-revalidate",
+                "Pragma": "no-cache",
+                "Expires": "0",
             },
         });
     }),
@@ -41,6 +63,7 @@ http.route({
                 "Access-Control-Allow-Origin": "*",
                 "Access-Control-Allow-Methods": "POST, OPTIONS",
                 "Access-Control-Allow-Headers": "Content-Type",
+                "Access-Control-Expose-Headers": "Content-Disposition",
                 "Access-Control-Max-Age": "86400",
             },
         });
