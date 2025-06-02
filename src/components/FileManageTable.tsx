@@ -602,7 +602,7 @@ export function FileManageTable() {
                             <span className="hidden sm:inline">List</span>
                         </div>
 
-                        <div className="flex-1 flex justify-end">
+                        <div className="flex-1 flex justify-end pr-2">
                             <div className="relative">
                                 <button
                                     onClick={(e) => {
@@ -616,7 +616,7 @@ export function FileManageTable() {
                                     </svg>
                                 </button>
                                 {isMobileMenuOpen && (
-                                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 border border-gray-200">
+                                    <div className="absolute right-0 w-48 bg-white rounded-md shadow-lg z-10 border border-gray-200">
                                         <button
                                             className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                                             onClick={handleCreateFolder} >
@@ -1028,10 +1028,10 @@ export function FileManageTable() {
                         <div className="flex items-center justify-center min-h-96">
                             <div className="text-2xl text-gray-500 bg-gray-100 rounded-lg border border-gray-200 p-4 gap-4 flex items-center gap-2">
                                 <span>
-                                    No Files yet
+                                    {currentFolderId === rootFolderId ? "No Files yet" : `No Files here`}
                                 </span>
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-12 h-12">
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.182 15.182a4.5 4.5 0 01-6.364 0M21 12a9 9 0 11-18 0 9 9 0 0118 0zM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75zm-.375 0h.008v.015h-.008V9.75zm5.625 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75zm-.375 0h.008v.015h-.008V9.75z" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 9.776c.112-.017.227-.026.344-.026h15.812c.117 0 .232.009.344.026m-16.5 0a2.25 2.25 0 00-1.883 2.542l.857 6a2.25 2.25 0 002.227 1.932H19.05a2.25 2.25 0 002.227-1.932l.857-6a2.25 2.25 0 00-1.883-2.542m-16.5 0V6A2.25 2.25 0 016 3.75h3.879a1.5 1.5 0 011.06.44l2.122 2.12a1.5 1.5 0 001.06.44H18A2.25 2.25 0 0120.25 9v.776" />
                                 </svg>
                             </div>
                         </div>
