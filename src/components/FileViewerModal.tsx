@@ -133,16 +133,41 @@ export function FileViewerModal({ viewingFiles, file, setFile, isOpen, onClose }
 
     return (
         <div
-            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-start z-50 p-4 flex-col"
             onClick={handleBackdropClick}
         >
             <div className="bg-white rounded-lg max-w-[90vw] max-h-[90vh] overflow-auto">
-                <div className="grid grid-cols-3 items-center justify-between p-4 border-b">
-                    <div>
-                        <h2 className="text-xl font-semibold text-gray-900">{file.name}</h2>
-                        <p className="text-sm text-gray-500">
-                            {file.type} • {formatFileSize(file.size || 0)} • {formatDate(file._creationTime)}
-                        </p>
+                <div className="grid grid-cols-1 md:grid-cols-3 items-center justify-between p-4 border-b">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <h2 className="text-xl font-semibold text-gray-900">{file.name}</h2>
+                            <p className="text-sm text-gray-500">
+                                {file.type} • {formatFileSize(file.size || 0)} • {formatDate(file._creationTime)}
+                            </p>
+                        </div>
+                        <div className="flex items-center gap-2 justify-end md:hidden">
+                            {file.url && (
+                                <a
+                                    href={file.url}
+                                    download={file.name}
+                                    className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-md"
+                                    title="Download"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                                    </svg>
+                                </a>
+                            )}
+                            <button
+                                onClick={onClose}
+                                className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-md"
+                                title="Close"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
                     </div>
                     <div className="flex flex-row items-center justify-center gap-4 p-4">
                         <button
@@ -158,7 +183,7 @@ export function FileViewerModal({ viewingFiles, file, setFile, isOpen, onClose }
                             Next
                         </button>
                     </div>
-                    <div className="flex items-center gap-2 justify-end">
+                    <div className="flex items-center gap-2 justify-end hidden md:flex">
                         {file.url && (
                             <a
                                 href={file.url}

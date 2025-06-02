@@ -396,11 +396,6 @@ export function FileManageTable() {
         );
     };
 
-    const IsPreviewable = (type?: string | null) => {
-        if (!type) return false;
-        return type.startsWith("image/") || type.startsWith("video/");
-    };
-
     const handleCreateFolder = async () => {
         setIsCreatingFolder(true);
         setNewFolderName("");
@@ -935,7 +930,9 @@ export function FileManageTable() {
                                     onDrop={file.type === "folder" ? (e) => handleDropOnFolder(e, file._id as Id<"folders">, file.name) : undefined}
                                 >
                                     {file.url && file.type !== "folder" ? (
-                                        <div className="h-48 bg-gray-100 flex items-center justify-center flex-col gap-2 overflow-hidden">
+                                        <div
+                                            onClick={() => openFileModal(file)}
+                                            className="h-48 bg-gray-100 flex items-center justify-center flex-col gap-2 overflow-hidden">
                                             {renderFileContent(file)}
                                         </div>
                                     ) : (
