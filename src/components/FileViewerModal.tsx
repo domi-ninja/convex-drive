@@ -1,6 +1,92 @@
 import { useEffect } from "react";
 import { FileOrFolder, formatDate, formatFileSize } from "./FileManageTable";
 
+
+export const renderFileContent = (file: FileOrFolder) => {
+    if (!file.url) {
+        return (
+            <div className="flex items-center justify-center h-96 bg-gray-100 rounded-lg w-full">
+                <span className="text-gray-500">File not available</span>
+            </div>
+        );
+    }
+
+    if (file.type?.startsWith("image/")) {
+        return (
+            <img
+                src={file.url}
+                alt={file.name}
+                className="max-w-full max-h-[70vh] object-contain rounded-lg w-full"
+            />
+        );
+    }
+
+    if (file.type?.startsWith("video/")) {
+        return (
+            <video
+                src={file.url}
+                controls
+                className="max-w-full max-h-[70vh] rounded-lg w-full"
+            >
+                Your browser does not support the video tag.
+            </video>
+        );
+    }
+
+    if (file.type?.startsWith("audio/")) {
+        return (
+            <div className="flex flex-col items-center gap-4 p-8 w-full">
+                <div className="text-6xl">🎵</div>
+                <audio src={file.url} controls className="w-full max-w-md">
+                    Your browser does not support the audio tag.
+                </audio>
+            </div>
+        );
+    }
+
+    if (file.type === "application/pdf") {
+        return (
+            <iframe
+                src={file.url}
+                className="w-full h-[90vh] rounded-lg overflow-hidden"
+                title={file.name}
+            />
+        );
+    }
+
+    if (file.type?.startsWith("text/") || file.type === "application/json") {
+        return (
+            <div className="bg-gray-100 p-4 rounded-lg h-96 overflow-auto w-full">
+                <iframe
+                    src={file.url}
+                    className="w-full h-full border-none w-full"
+                    title={file.name}
+                />
+            </div>
+        );
+    }
+
+    // Default: show download link
+    return (
+        <div className="flex flex-col items-center gap-4 p-8 bg-gray-50 rounded-lg">
+            <div className="text-6xl">📄</div>
+            <div className="text-center">
+                <p className="text-lg font-medium text-gray-900">{file.name}</p>
+                <p className="text-sm text-gray-500 mt-1">
+                    {file.type} • {formatFileSize(file.size || 0)}
+                </p>
+            </div>
+            <a
+                href={file.url}
+                download={file.name}
+                className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+            >
+                Download File
+            </a>
+        </div>
+    );
+};
+
 // Modal component moved inside to access helper functions
 export function FileViewerModal({ viewingFiles, file, setFile, isOpen, onClose }: {
     viewingFiles: FileOrFolder[];
@@ -44,97 +130,13 @@ export function FileViewerModal({ viewingFiles, file, setFile, isOpen, onClose }
         setFile(viewingFiles[previousIndex]);
     };
 
-    const renderFileContent = () => {
-        if (!file.url) {
-            return (
-                <div className="flex items-center justify-center h-96 bg-gray-100 rounded-lg w-full">
-                    <span className="text-gray-500">File not available</span>
-                </div>
-            );
-        }
-
-        if (file.type?.startsWith("image/")) {
-            return (
-                <img
-                    src={file.url}
-                    alt={file.name}
-                    className="max-w-full max-h-[70vh] object-contain rounded-lg w-full"
-                />
-            );
-        }
-
-        if (file.type?.startsWith("video/")) {
-            return (
-                <video
-                    src={file.url}
-                    controls
-                    className="max-w-full max-h-[70vh] rounded-lg w-full"
-                >
-                    Your browser does not support the video tag.
-                </video>
-            );
-        }
-
-        if (file.type?.startsWith("audio/")) {
-            return (
-                <div className="flex flex-col items-center gap-4 p-8 w-full">
-                    <div className="text-6xl">🎵</div>
-                    <audio src={file.url} controls className="w-full max-w-md">
-                        Your browser does not support the audio tag.
-                    </audio>
-                </div>
-            );
-        }
-
-        if (file.type === "application/pdf") {
-            return (
-                <iframe
-                    src={file.url}
-                    className="w-full h-[70vh] rounded-lg w-full"
-                    title={file.name}
-                />
-            );
-        }
-
-        if (file.type?.startsWith("text/") || file.type === "application/json") {
-            return (
-                <div className="bg-gray-100 p-4 rounded-lg h-96 overflow-auto w-full">
-                    <iframe
-                        src={file.url}
-                        className="w-full h-full border-none w-full"
-                        title={file.name}
-                    />
-                </div>
-            );
-        }
-
-        // Default: show download link
-        return (
-            <div className="flex flex-col items-center gap-4 p-8 bg-gray-50 rounded-lg">
-                <div className="text-6xl">📄</div>
-                <div className="text-center">
-                    <p className="text-lg font-medium text-gray-900">{file.name}</p>
-                    <p className="text-sm text-gray-500 mt-1">
-                        {file.type} • {formatFileSize(file.size || 0)}
-                    </p>
-                </div>
-                <a
-                    href={file.url}
-                    download={file.name}
-                    className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
-                >
-                    Download File
-                </a>
-            </div>
-        );
-    };
 
     return (
         <div
             className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
             onClick={handleBackdropClick}
         >
-            <div className="bg-white rounded-lg max-w-6xl max-h-[90vh] overflow-auto">
+            <div className="bg-white rounded-lg max-w-[90vw] max-h-[90vh] overflow-auto">
                 <div className="grid grid-cols-3 items-center justify-between p-4 border-b">
                     <div>
                         <h2 className="text-xl font-semibold text-gray-900">{file.name}</h2>
@@ -180,9 +182,7 @@ export function FileViewerModal({ viewingFiles, file, setFile, isOpen, onClose }
                         </button>
                     </div>
                 </div>
-                <div>
-                    {renderFileContent()}
-                </div>
+                {renderFileContent(file)}
             </div>
         </div>
     );

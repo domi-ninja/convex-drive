@@ -6,7 +6,7 @@ import { FileUploadArea } from "./components";
 
 export default function Header() {
     const location = useLocation();
-    const isMainRoute = location.pathname === "/";
+    const isMainRoute = location.pathname === "/" || location.pathname.startsWith("/folder");
     const loggedInUser = useQuery(api.auth.loggedInUser);
 
     return (

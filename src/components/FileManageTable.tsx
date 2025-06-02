@@ -6,7 +6,7 @@ import { api } from "../../convex/_generated/api";
 import { Id } from "../../convex/_generated/dataModel";
 import { useFolderContext } from "../contexts/FolderContext";
 import { FileTreeModal } from "./FileTreeModal";
-import { FileViewerModal } from "./FileViewerModal";
+import { FileViewerModal, renderFileContent } from "./FileViewerModal";
 
 type SortField = 'name' | 'extension' | 'size' | '_creationTime';
 type SortDirection = 'asc' | 'desc';
@@ -915,18 +915,22 @@ export function FileManageTable() {
                                     onDragLeave={file.type === "folder" ? handleDragLeave : undefined}
                                     onDrop={file.type === "folder" ? (e) => handleDropOnFolder(e, file._id as Id<"folders">) : undefined}
                                 >
-                                    {IsPreviewable(file.type) && file.url && file.type !== "folder" ? (
-                                        <img src={file.url} alt={file.name} className="h-48 w-48 object-contain" />
+                                    {file.url && file.type !== "folder" ? (
+                                        <div className="h-48 bg-gray-100 flex items-center justify-center flex-col gap-2 overflow-hidden">
+                                            {renderFileContent(file)}
+                                        </div>
                                     ) : (
-                                        <div className="h-48 bg-gray-100 flex items-center justify-center flex-col gap-2">
+                                        <div className="h-48 bg-gray-100 flex items-center justify-center flex-col gap-2"
+                                            onClick={() => handleOpenFile(file._id, file.name, file.type as "file" | "folder")}
+                                        >
                                             {file.type === "folder" && (
-                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-12 h-12 text-blue-500">
+                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-12 h-12">
                                                     <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-8.69-6.44l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z" />
                                                 </svg>
                                             )}
-                                            <p className="text-sm text-gray-500">{file.type}</p>
+                                            {/* <p className="text-sm text-gray-500">{file.type}</p> */}
                                             {file.size && <p className="text-sm text-gray-500">{formatFileSize(file.size || 0)}</p>}
-                                            <p className="text-sm text-gray-500">{formatDate(file._creationTime)}</p>
+                                            {/* <p className="text-sm text-gray-500">{formatDate(file._creationTime)}</p> */}
                                         </div>
                                     )}
                                     <div className="flex flex-row gap-2 py-2 w-full flex-wrap text-baseline p-2">
@@ -975,28 +979,41 @@ export function FileManageTable() {
                                     </div>
                                 </div>
                             ))}
-                            <div onClick={() => handleCreateFolder()} className="bg-gray-100 rounded-lg border border-gray-200 w-full p-4 flex items-end gap-2 cursor-pointer hover:bg-gray-200 h-24">
-                                {(isCreatingFolder) ? (
-                                    <input
-                                        type="text"
-                                        id="new-folder-name"
-                                        value={newFolderName}
-                                        onChange={(e) => setNewFolderName(e.target.value)}
-                                        onBlur={handleCancelCreateFolder}
-                                        onKeyDown={handleCreateFolderKeyDown}
-                                        className="text-gray-900 border border-blue-500 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm text-break"
-                                        autoFocus
-                                    />
-                                ) : (
-                                    <div>
+                            {(isCreatingFolder ? (
+                                <div onClick={() => handleCreateFolder()} className="bg-gray-100 rounded-lg border border-gray-200 w-full p-4 flex items-end gap-2 cursor-pointer hover:bg-gray-200 h-32">
+                                    <div className="flex items-center gap-2 flex-col">
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 text-gray-500">
                                             <path strokeLinecap="round" strokeLinejoin="round" d="M12 10.5v6m3-3H9m4.06-7.19l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z" />
                                         </svg>
                                         <span className="text-gray-500">
-                                            Create Folder
+                                            New Folder
                                         </span>
+                                        {(isCreatingFolder) ? (
+                                            <input
+                                                type="text"
+                                                id="new-folder-name"
+                                                value={newFolderName}
+                                                onChange={(e) => setNewFolderName(e.target.value)}
+                                                onBlur={handleCancelCreateFolder}
+                                                onKeyDown={handleCreateFolderKeyDown}
+                                                className="text-gray-900 border border-blue-500 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm text-break"
+                                                autoFocus
+                                            />
+                                        ) : null}
                                     </div>
-                                )}
+                                </div>) : null)}
+                        </div>
+                    )}
+
+                    {filesAndFolders.length === 0 && (
+                        <div className="flex items-center justify-center min-h-96">
+                            <div className="text-2xl text-gray-500 bg-gray-100 rounded-lg border border-gray-200 p-4 gap-4 flex items-center gap-2">
+                                <span>
+                                    No Files yet
+                                </span>
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-12 h-12">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.182 15.182a4.5 4.5 0 01-6.364 0M21 12a9 9 0 11-18 0 9 9 0 0118 0zM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75zm-.375 0h.008v.015h-.008V9.75zm5.625 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75zm-.375 0h.008v.015h-.008V9.75z" />
+                                </svg>
                             </div>
                         </div>
                     )}
