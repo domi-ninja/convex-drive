@@ -16,7 +16,7 @@ interface TreeNode {
 interface FileTreeModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onNavigate?: (folderId: Id<"folders">) => void;
+    onNavigate?: (folderId: Id<"folders">, folderName: string) => void;
 }
 
 export function FileTreeModal({ isOpen, onClose, onNavigate }: FileTreeModalProps) {
@@ -80,16 +80,11 @@ export function FileTreeModal({ isOpen, onClose, onNavigate }: FileTreeModalProp
         });
     };
 
-    const handleNodeClick = (nodeId: Id<"files"> | Id<"folders">, type: "file" | "folder") => {
-        setSelectedNode(nodeId);
-        if (type === "folder") {
-            if (onNavigate) {
-                onNavigate(nodeId as Id<"folders">);
-            } else {
-                setCurrentFolderId(nodeId as Id<"folders">);
-            }
-            onClose();
-        }
+    const handleFolderNodeClick = (node: TreeNode) => {
+        console.log("handleNodeClick", node);
+        setSelectedNode(node._id);
+        onNavigate?.(node._id as Id<"folders">, node.name);
+        onClose();
     };
 
     const renderTreeNode = (node: any, level: number = 0): React.JSX.Element => {
@@ -104,7 +99,7 @@ export function FileTreeModal({ isOpen, onClose, onNavigate }: FileTreeModalProp
                     className={`flex items-center gap-2 px-2 py-1 rounded cursor-pointer hover:bg-gray-100 ${isSelected ? 'bg-blue-100' : ''
                         } ${isCurrentFolder ? 'bg-blue-50 border-l-4 border-blue-500' : ''}`}
                     style={{ paddingLeft: `${level * 20 + 8}px` }}
-                    onClick={() => handleNodeClick(node._id, "folder")}
+                    onClick={() => handleFolderNodeClick(node)}
                 >
                     {hasChildren ? (
                         <button

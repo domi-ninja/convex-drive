@@ -476,13 +476,13 @@ export function FileManageTable() {
         }
     };
 
-    const handleDropOnFolder = async (e: React.DragEvent, targetFolderId: Id<"folders">) => {
+    const handleDropOnFolder = async (e: React.DragEvent, targetFolderId: Id<"folders">, targetFolderName: string) => {
         e.preventDefault();
         setDragOverFolder(null);
-        moveFiles(targetFolderId);
+        moveFiles(targetFolderId, targetFolderName);
     };
 
-    const moveFiles = async (targetFolderId: Id<"folders">) => {
+    const moveFiles = async (targetFolderId: Id<"folders">, targetFolderName: string) => {
         if (selectedFiles.size === 0) return;
 
         try {
@@ -508,7 +508,7 @@ export function FileManageTable() {
             });
 
             await Promise.all(promises);
-            toast.success(`Moved ${selectedFiles.size} item(s) successfully`);
+            toast.success(`Moved ${selectedFiles.size} item(s) to ${targetFolderName}`);
             setSelectedFiles(new Set());
             setDraggedItems(new Set());
         } catch (error) {
@@ -522,19 +522,20 @@ export function FileManageTable() {
         setDragOverFolder(null);
     };
 
-    const handleFiletreemodalNavigate = (folderId: Id<"folders">) => {
+    const handleFiletreemodalNavigate = (folderId: Id<"folders">, folderName: string) => {
+        console.log("handleFiletreemodalNavigate", folderId, folderName);
         if (selectedFiles.size > 0) {
-            moveFiles(folderId);
+            moveFiles(folderId, folderName);
         } else {
             setCurrentFolderId(folderId);
         }
     };
 
     return (
-        <div>
+        <div onClick={() => setIsMenuOpen(false)}>
             {/* className="select-none" */}
-            <div className="">
-                <div className="grid grid-cols-2 md:grid-cols-3 items-center mb-4 gap-4">
+            <div className="pt-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 items-center mb-4 gap-4">
                     <div className="flex items-center gap-2">
                         <h2 className={`text-2xl font-semibold cursor-pointer p-2`} onClick={() => setSelectedFiles(new Set())}>
                             {(
@@ -616,7 +617,26 @@ export function FileManageTable() {
                                 </button>
                                 {isMenuOpen && (
                                     <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 border border-gray-200">
-
+                                        <button
+                                            className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                                            onClick={handleCreateFolder} >
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-5">
+                                            </svg>
+                                            New Folder
+                                        </button>
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setIsTreeModalOpen(true);
+                                                setIsMenuOpen(false);
+                                            }}
+                                            className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-5">
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 7.5h-.75A2.25 2.25 0 004.5 9.75v7.5a2.25 2.25 0 002.25 2.25h7.5a2.25 2.25 0 002.25-2.25v-7.5a2.25 2.25 0 00-2.25-2.25h-.75m0-3l-3-3m0 0l-3 3m3-3v11.25m6-2.25h.75a2.25 2.25 0 012.25 2.25v7.5a2.25 2.25 0 01-2.25 2.25h-7.5a2.25 2.25 0 01-2.25-2.25v-.75" />
+                                            </svg>
+                                            Move
+                                        </button>
                                         <button
                                             onClick={(e) => {
                                                 e.stopPropagation();
@@ -843,7 +863,7 @@ export function FileManageTable() {
                                                         onDragOver={file.type === "folder" ? handleDragOver : undefined}
                                                         onDragEnter={file.type === "folder" ? (e) => handleDragEnter(e, file._id as Id<"folders">) : undefined}
                                                         onDragLeave={file.type === "folder" ? handleDragLeave : undefined}
-                                                        onDrop={file.type === "folder" ? (e) => handleDropOnFolder(e, file._id as Id<"folders">) : undefined}
+                                                        onDrop={file.type === "folder" ? (e) => handleDropOnFolder(e, file._id as Id<"folders">, file.name) : undefined}
                                                     >
                                                         <span className="group hover:text-blue-600">
                                                             <span className="group-hover:text-blue-600">{file.name}</span>
@@ -913,7 +933,7 @@ export function FileManageTable() {
                                     onDragOver={file.type === "folder" ? handleDragOver : undefined}
                                     onDragEnter={file.type === "folder" ? (e) => handleDragEnter(e, file._id as Id<"folders">) : undefined}
                                     onDragLeave={file.type === "folder" ? handleDragLeave : undefined}
-                                    onDrop={file.type === "folder" ? (e) => handleDropOnFolder(e, file._id as Id<"folders">) : undefined}
+                                    onDrop={file.type === "folder" ? (e) => handleDropOnFolder(e, file._id as Id<"folders">, file.name) : undefined}
                                 >
                                     {file.url && file.type !== "folder" ? (
                                         <div className="h-48 bg-gray-100 flex items-center justify-center flex-col gap-2 overflow-hidden">
