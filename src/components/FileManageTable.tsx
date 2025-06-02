@@ -85,7 +85,6 @@ export function FileManageTable() {
 
     useEffect(() => {
         if (!files) return;
-
         let filesList: FileOrFolder[] = [];
         for (const file of files.files || []) {
             filesList.push({
@@ -275,36 +274,37 @@ export function FileManageTable() {
     };
 
     const handleDownloadSelected = async () => {
-        // if (selectedFiles.size === 0) {
-        //     toast.info("No files selected for download.");
-        //     return;
-        // }
-        // try {
-        //     const fileIds = Array.from(selectedFiles).filter(isFileId);
-        //     if (fileIds.length === 0) {
-        //         toast.info("No files selected (only folders were selected).");
-        //         return;
-        //     }
-        //     const result = await downloadFilesAsZipAction({
-        //         fileIds
-        //     }) as { url: string | null; name: string } | undefined;
+        if (selectedFiles.size === 0) {
+            toast.info("No files selected for download.");
+            return;
+        }
+        try {
+            const fileOrFolder = filesAndFolders.filter(f => selectedFiles.size == 0 || selectedFiles.has(f._id));
 
-        //     if (result && result.url) {
-        //         const link = document.createElement("a");
-        //         link.href = result.url;
-        //         link.download = result.name;
-        //         document.body.appendChild(link);
-        //         link.click();
-        //         document.body.removeChild(link);
-        //         toast.success("Download started.");
-        //     } else {
-        //         toast.error("Could not prepare download. The zip might be empty or an error occurred.");
-        //     }
-        //     setSelectedFiles(new Set());
-        // } catch (error) {
-        //     console.error("Failed to download files:", error);
-        //     toast.error("Failed to download files.");
-        // }
+            const result = await downloadFilesAsZipAction({
+                filesOrFolders: fileOrFolder.map(f => ({
+                    type: f.type!,
+                    name: f.name,
+                    _id: f._id,
+                })),
+            }) as { url: string | null; name: string } | undefined;
+
+            if (result && result.url) {
+                const link = document.createElement("a");
+                link.href = result.url;
+                link.download = result.name;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                toast.success("Download started.");
+            } else {
+                toast.error("Could not prepare download. The zip might be empty or an error occurred.");
+            }
+            setSelectedFiles(new Set());
+        } catch (error) {
+            console.error("Failed to download files:", error);
+            toast.error("Failed to download files.");
+        }
     };
 
     const handleStartRename = (fileId: Id<"files"> | Id<"folders">, currentName: string, type: "file" | "folder") => {

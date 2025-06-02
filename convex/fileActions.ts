@@ -1,55 +1,65 @@
 "use node"; // This file is for Node.js specific actions
 import { v } from "convex/values";
-import { action } from "./_generated/server";
-import { api, internal } from "./_generated/api";
-import { getAuthUserId } from "@convex-dev/auth/server";
 import JSZip from "jszip";
-import { Doc, Id } from "./_generated/dataModel";
-
+import { api } from "./_generated/api";
+import { Id } from "./_generated/dataModel";
+import { action } from "./_generated/server";
 type DownloadResult = { url: string | null; name: string };
 
 export const downloadFilesAsZip = action({
-  args: { fileIds: v.array(v.id("files")) },
-  handler: async (ctx, args): Promise<DownloadResult> => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) {
-      throw new Error("User not authenticated");
-    }
+  args: {
+    filesOrFolders: v.array(
+      v.object({
+        type: v.string(),
+        name: v.string(),
+        _id: v.union(v.id("files"), v.id("folders")),
+      })
+    ),
+  },
+  returns: v.object({
+    url: v.string(),
+    name: v.string(),
+  }),
+  handler: async (ctx, args) => {
+    const { filesOrFolders } = args;
+    const zip = new JSZip();
 
-    const filesToDownload: Array<Doc<"files">> = [];
-    for (const fileId of args.fileIds) {
-      // Call the query from the 'files' module
-      const file: Doc<"files"> | null = await ctx.runQuery(api.files.getFileForDownload, { fileId });
-      if (file && file.userId === userId) {
-        filesToDownload.push(file);
-      } else {
-        console.warn(`User ${userId} attempted to download file ${fileId} they do not own or file does not exist.`);
+    const zipRec = async (currentZip: JSZip, folderId: Id<"folders">) => {
+      const files = await ctx.runQuery(api.files.listFilesInFolder, { folderId });
+
+      for (const file of files) {
+        const blob = await ctx.storage.get(file.storageId);
+        if (blob) {
+          currentZip.file(file.name, blob);
+        }
+      }
+
+      const folders = await ctx.runQuery(api.folders.listFoldersInFolder, { folderId });
+
+      for (const folder of folders) {
+        await zipRec(currentZip.folder(folder.name) as JSZip, folder._id);
       }
     }
 
-    if (filesToDownload.length === 0) {
-      return { url: null, name: "empty.zip" };
-    }
-
-    const zip = new JSZip();
-    for (const file of filesToDownload) {
-      if (file.storageId) {
-        const fileBuffer = await ctx.storage.get(file.storageId);
-        if (fileBuffer) {
-          zip.file(file.name, fileBuffer);
+    for (const fileOrFolder of filesOrFolders) {
+      if (fileOrFolder.type === "folder") {
+        //await zipRec(zip, fileOrFolder._id as Id<"folders">);
+      } else {
+        // Get file details first to get the storageId
+        const fileDoc = await ctx.runQuery(api.folders.getFileForDownload, {
+          fileId: fileOrFolder._id as Id<"files">
+        });
+        if (fileDoc) {
+          const fileBlob = await ctx.storage.get(fileDoc.storageId);
+          console.log("fileBlob", fileBlob);
+          if (fileBlob) {
+            zip.file(fileOrFolder.name, fileBlob);
+          }
         }
       }
     }
 
-    const zipContent: ArrayBuffer = await zip.generateAsync({ type: "arraybuffer" });
-    const zipName: string = filesToDownload.length > 1 ? "files.zip" : `${filesToDownload[0].name}.zip`;
-
-    const zipStorageId = await ctx.storage.store(new Blob([zipContent], { type: "application/zip" }));
-    const url = await ctx.storage.getUrl(zipStorageId);
-
-    // Call the internal mutation from the 'files' module
-    await ctx.scheduler.runAfter(60000 * 5, internal.files.deleteTemporaryZip, { storageId: zipStorageId });
-
-    return { url, name: zipName };
-  },
+    const content = await zip.generateAsync({ type: "blob" });
+    return { url: URL.createObjectURL(content), name: "download.zip" };
+  }
 });
