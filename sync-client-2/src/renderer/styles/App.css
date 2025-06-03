@@ -1,0 +1,28 @@
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.app-content {
+  display: flex;
+  flex: 1;
+  padding: 20px;
+  gap: 20px;
+  overflow-y: auto;
+}
+
+@media (max-width: 768px) {
+  .app-content {
+    flex-direction: column;
+  }
+}
+
+.app-footer {
+  background-color: var(--card-background);
+  border-top: 1px solid var(--border-color);
+  padding: 10px 20px;
+  text-align: center;
+  font-size: 14px;
+  color: #666;
+} 

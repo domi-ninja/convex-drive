@@ -1,0 +1,77 @@
+.file-list {
+  background-color: var(--card-background);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  padding: 20px;
+  flex: 1;
+  min-width: 300px;
+  max-height: 100%;
+  overflow-y: auto;
+}
+
+.file-list h2 {
+  margin-bottom: 20px;
+}
+
+.current-file, .recent-files {
+  margin-bottom: 20px;
+}
+
+.current-file h3, .recent-files h3 {
+  font-size: 16px;
+  margin-bottom: 10px;
+  color: #666;
+}
+
+.file-item {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  border-radius: 4px;
+  margin-bottom: 5px;
+  background-color: var(--background-color);
+  transition: background-color 0.2s;
+}
+
+.file-item:hover {
+  background-color: #e9ecf1;
+}
+
+.file-item.current {
+  border-left: 3px solid var(--primary-color);
+  background-color: rgba(52, 152, 219, 0.05);
+}
+
+.file-icon {
+  margin-right: 10px;
+  font-size: 18px;
+}
+
+.file-name {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.file-time {
+  font-size: 12px;
+  color: #888;
+  margin-right: 10px;
+}
+
+.file-status {
+  margin-left: 10px;
+}
+
+.file-status.syncing {
+  color: var(--sync-color);
+}
+
+.file-status.success {
+  color: var(--complete-color);
+}
+
+.file-status.error {
+  color: var(--error-color);
+} 
