@@ -1,4 +1,5 @@
 import { cleanFileName } from "@/lib/file";
+import { useAuthToken } from "@convex-dev/auth/react";
 import { useMutation, useQuery } from "convex/react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -81,6 +82,8 @@ export function FileManageTable() {
 
     // Convert context files to the expected format
     const [filesAndFolders, setFilesAndFolders] = useState<FileOrFolder[]>([]);
+
+    const token = useAuthToken();
 
     useEffect(() => {
         if (!files) return;
@@ -282,9 +285,18 @@ export function FileManageTable() {
             const selectedItems = filesAndFolders.filter(f => selectedFiles.has(f._id));
             const convexSiteUrl = (import.meta.env.VITE_CONVEX_URL as string).replace("convex.cloud", "convex.site");
 
+            const headers: Record<string, string> = {
+                'Content-Type': 'application/json'
+            };
+
+            // Add Authorization header if token is available
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+
             const response = await fetch(`${convexSiteUrl}/download-zip`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers,
                 body: JSON.stringify({
                     filesOrFolders: selectedItems.map(f => ({
                         type: f.type!,
