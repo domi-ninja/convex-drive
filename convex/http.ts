@@ -1,7 +1,7 @@
 import { httpRouter } from "convex/server";
 import { auth } from "./auth";
-import { httpDesktopClientAuth } from "./httpDesktopClientAuth";
 import { httpDownloadZip } from "./httpDownloadZip";
+import { getUserIdentity } from "./httpDesktopClientAuth";
 
 const http = httpRouter();
 
@@ -11,7 +11,7 @@ auth.addHttpRoutes(http);
 
 
 httpDownloadZip(http);
-httpDesktopClientAuth(http);
+getUserIdentity(http);
 
 
 export default http;

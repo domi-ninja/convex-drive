@@ -18,6 +18,8 @@ import type * as fileActions from "../fileActions.js";
 import type * as files from "../files.js";
 import type * as folders from "../folders.js";
 import type * as http from "../http.js";
+import type * as httpDesktopClientAuth from "../httpDesktopClientAuth.js";
+import type * as httpDownloadZip from "../httpDownloadZip.js";
 
 /**
  * A utility for referencing Convex functions in your app's API.
@@ -33,6 +35,8 @@ declare const fullApi: ApiFromModules<{
   files: typeof files;
   folders: typeof folders;
   http: typeof http;
+  httpDesktopClientAuth: typeof httpDesktopClientAuth;
+  httpDownloadZip: typeof httpDownloadZip;
 }>;
 export declare const api: FilterApi<
   typeof fullApi,
