@@ -4,7 +4,8 @@ import { Toaster } from "sonner";
 import { FolderProvider } from "./contexts/FolderContext";
 import Header from "./Header";
 import { Home } from "./pages/Home";
-import { Profile } from "./pages/Profile";
+import { DesktopClientManager } from "./pages/settings/DesktopClientMgr";
+import { Profile } from "./pages/settings/Profile";
 import { SignInForm } from "./SignInForm";
 
 export default function App() {
@@ -25,7 +26,8 @@ export default function App() {
                 <Route path="/" element={<Home />} />
                 <Route path="/folder" element={<Home />} />
                 <Route path="/folder/:path/*" element={<Home />} />
-                <Route path="/profile" element={<Profile />} />
+                <Route path="/settings/profile" element={<Profile />} />
+                <Route path="/settings/clients" element={<DesktopClientManager />} />
               </Routes>
             </Authenticated>
           </main>

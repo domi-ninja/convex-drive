@@ -25,7 +25,7 @@ export default function Header() {
                     <div className="flex items-center">
                         <nav className="flex items-center gap-1 sm:gap-4">
                             <Link
-                                to="/profile"
+                                to="/settings/profile"
                                 className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 text-xs sm:text-sm text-secondary hover:text-secondary-hover hover:bg-gray-50 rounded-md transition-colors"
                             >
                                 <span className="truncate max-w-24 sm:max-w-none">

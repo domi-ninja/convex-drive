@@ -1,5 +1,5 @@
 import { Authenticated, useQuery } from "convex/react";
-import { api } from "../../convex/_generated/api";
+import { api } from "../../../convex/_generated/api";
 
 export function Profile() {
     const loggedInUser = useQuery(api.auth.loggedInUser);
