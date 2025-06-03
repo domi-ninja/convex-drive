@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sync Client</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-sync-alt"></i>
+                    <h1>Sync Client</h1>
+                </div>
+                <div class="header-actions">
+                    <button id="minimize-btn" class="btn btn-icon" title="Minimize to tray">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Sync Status Card -->
+            <div class="card sync-status-card">
+                <div class="card-header">
+                    <h2>Sync Status</h2>
+                    <div class="status-indicator" id="status-indicator">
+                        <span class="status-dot"></span>
+                        <span class="status-text" id="status-text">Syncing...</span>
+                    </div>
+                </div>
+                <div class="card-content">
+                    <div class="progress-section">
+                        <div class="progress-info">
+                            <span id="files-synced">1247</span> of <span id="total-files">1250</span> files synced
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progress-fill"></div>
+                        </div>
+                        <div class="progress-details">
+                            <span class="sync-speed" id="sync-speed">2.3 MB/s</span>
+                            <span class="remaining-time" id="remaining-time">5 seconds remaining</span>
+                        </div>
+                    </div>
+
+                    <div class="last-sync">
+                        <i class="fas fa-clock"></i>
+                        Last sync: <span id="last-sync-time">2 minutes ago</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions Card -->
+            <div class="card actions-card">
+                <div class="card-header">
+                    <h2>Actions</h2>
+                </div>
+                <div class="card-content">
+                    <div class="action-buttons">
+                        <button id="toggle-sync-btn" class="btn btn-primary">
+                            <i class="fas fa-pause"></i>
+                            Pause Sync
+                        </button>
+                        <button id="open-folder-btn" class="btn btn-secondary">
+                            <i class="fas fa-folder-open"></i>
+                            Open Sync Folder
+                        </button>
+                        <button id="refresh-btn" class="btn btn-secondary">
+                            <i class="fas fa-refresh"></i>
+                            Refresh Status
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activity Card -->
+            <div class="card activity-card">
+                <div class="card-header">
+                    <h2>Recent Activity</h2>
+                </div>
+                <div class="card-content">
+                    <div class="activity-list" id="activity-list">
+                        <div class="activity-item">
+                            <div class="activity-icon">
+                                <i class="fas fa-upload text-success"></i>
+                            </div>
+                            <div class="activity-content">
+                                <div class="activity-title">document.pdf</div>
+                                <div class="activity-time">2 minutes ago</div>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-icon">
+                                <i class="fas fa-download text-info"></i>
+                            </div>
+                            <div class="activity-content">
+                                <div class="activity-title">presentation.pptx</div>
+                                <div class="activity-time">5 minutes ago</div>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-icon">
+                                <i class="fas fa-sync text-warning"></i>
+                            </div>
+                            <div class="activity-content">
+                                <div class="activity-title">image_folder/</div>
+                                <div class="activity-time">8 minutes ago</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-content">
+                <span class="version-info" id="version-info">Loading...</span>
+                <span class="platform-info" id="platform-info"></span>
+            </div>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>

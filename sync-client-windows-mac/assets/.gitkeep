@@ -1,0 +1,9 @@
+# Assets Directory
+
+This directory should contain the following icon files:
+
+- icon.png (main app icon, 256x256 or larger)
+- tray-icon.png (tray icon for macOS/Linux, 16x16 or 22x22)
+- tray-icon.ico (tray icon for Windows, 16x16)
+
+For now, the app will use Font Awesome icons as fallbacks. 
