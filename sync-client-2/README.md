@@ -1,0 +1,11 @@
+-  Electron
+-  Typescript
+-  Cross-platform GUI (Windows, macOS, Linux)
+-  Supports Windows and macOS
+-  Tray icon mode (runs in background)
+-  Can run as tray icon only, but can also be opened into a window
+-  Displays the status of file sync (currently using mock data)
+-  Modern, responsive UI with real-time updates
+-  System notifications
+-  Auto-refresh sync status
+-  Progress tracking with speed and time estimates

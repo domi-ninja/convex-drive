@@ -1,0 +1,12 @@
+{
+  "name": "sync-client-2",
+  "version": "1.0.0",
+  "description": "-  Electron\r -  Typescript\r -  Cross-platform GUI (Windows, macOS, Linux)\r -  Supports Windows and macOS\r -  Tray icon mode (runs in background)\r -  Can run as tray icon only, but can also be opened into a window\r -  Displays the status of file sync (currently using mock data)\r -  Modern, responsive UI with real-time updates\r -  System notifications\r -  Auto-refresh sync status\r -  Progress tracking with speed and time estimates",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

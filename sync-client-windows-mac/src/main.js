@@ -17,18 +17,19 @@ function createWindow() {
         webPreferences: {
             nodeIntegration: false,
             contextIsolation: true,
-            preload: path.join(__dirname, 'preload.js')
+            preload: path.resolve(__dirname, 'preload.js')
         }
     });
+
 
     // Load the app
     mainWindow.loadFile(path.join(__dirname, 'renderer/index.html'));
 
     // Show window when ready
     mainWindow.once('ready-to-show', () => {
-        if (!tray) {
-            mainWindow.show();
-        }
+        console.log('Window ready to show');
+        mainWindow.webContents.openDevTools();
+        mainWindow.show();
     });
 
     // Handle window close
@@ -36,6 +37,7 @@ function createWindow() {
         if (!isQuitting) {
             event.preventDefault();
             mainWindow.hide();
+            console.log('Window hidden');
 
             // Show notification on first minimize to tray
             if (process.platform === 'darwin') {
@@ -46,76 +48,130 @@ function createWindow() {
 
     mainWindow.on('closed', () => {
         mainWindow = null;
+        console.log('Window closed');
     });
 }
 
 function createTray() {
-    // Create tray icon
-    const iconPath = process.platform === 'win32'
-        ? path.join(__dirname, '../assets/tray-icon.ico')
-        : path.join(__dirname, '../assets/tray-icon.png');
+    
+    const iconPath = path.join(__dirname, '../assets/icon.png');
+    const icon = nativeImage.createFromPath(iconPath)
 
-    const trayIcon = nativeImage.createFromPath(iconPath);
-    tray = new Tray(trayIcon.resize({ width: 16, height: 16 }));
+    // Create the tray
+    try {
+        tray = new Tray(icon);
+        console.log('Tray created successfully');
+    } catch (error) {
+        console.error('Failed to create tray:', error);
+        return;
+    }
 
-    // Create context menu
-    const contextMenu = Menu.buildFromTemplate([
-        {
-            label: 'Show Sync Client',
-            click: () => {
-                if (mainWindow) {
-                    mainWindow.show();
-                    if (process.platform === 'darwin') {
-                        app.dock.show();
-                    }
-                } else {
-                    createWindow();
-                }
-            }
-        },
-        {
-            label: 'Sync Status',
-            submenu: [
-                { label: 'Syncing...', enabled: false },
-                { label: 'Last sync: 2 minutes ago', enabled: false }
-            ]
-        },
-        { type: 'separator' },
-        {
-            label: 'Preferences',
-            click: () => {
-                // Open preferences window
-                console.log('Open preferences');
-            }
-        },
-        { type: 'separator' },
-        {
-            label: 'Quit',
-            click: () => {
-                isQuitting = true;
-                app.quit();
-            }
-        }
-    ]);
+    // // Create context menu
+    // const contextMenu = Menu.buildFromTemplate([
+    //     {
+    //         label: 'Show Sync Client',
+    //         click: () => {
+    //             try {
+    //                 if (mainWindow) {
+    //                     if (mainWindow.isMinimized()) {
+    //                         mainWindow.restore();
+    //                     }
+    //                     mainWindow.show();
+    //                     mainWindow.focus();
+    //                     if (process.platform === 'darwin') {
+    //                         app.dock.show();
+    //                     }
+    //                 } else {
+    //                     createWindow();
+    //                 }
+    //             } catch (error) {
+    //                 console.error('Error showing window:', error);
+    //             }
+    //         }
+    //     },
+    //     {
+    //         label: 'Sync Status',
+    //         submenu: [
+    //             { label: 'Syncing...', enabled: false },
+    //             { label: 'Last sync: 2 minutes ago', enabled: false }
+    //         ]
+    //     },
+    //     { type: 'separator' },
+    //     {
+    //         label: 'Preferences',
+    //         click: () => {
+    //             // Open preferences window
+    //             console.log('Open preferences');
+    //         }
+    //     },
+    //     { type: 'separator' },
+    //     {
+    //         label: 'Quit',
+    //         click: () => {
+    //             isQuitting = true;
+    //             app.quit();
+    //         }
+    //     }
+    // ]);
 
-    tray.setContextMenu(contextMenu);
-    tray.setToolTip('Sync Client - Running in background');
+    // try {
+    //     tray.setContextMenu(contextMenu);
+    //     tray.setToolTip('Sync Client - Running in background');
+    //     console.log('Tray context menu and tooltip set');
+    // } catch (error) {
+    //     console.error('Error setting tray context menu:', error);
+    // }
 
-    // Handle tray click
-    tray.on('click', () => {
-        if (mainWindow) {
-            if (mainWindow.isVisible()) {
-                mainWindow.hide();
-            } else {
-                mainWindow.show();
-                if (process.platform === 'darwin') {
-                    app.dock.show();
-                }
-            }
-        } else {
-            createWindow();
-        }
-    });
+    // // Handle tray click (different behavior for Windows vs other platforms)
+    // if (process.platform === 'win32') {
+    //     // On Windows, use double-click for primary action
+    //     tray.on('double-click', () => {
+    //         try {
+    //             if (mainWindow) {
+    //                 if (mainWindow.isVisible() && !mainWindow.isMinimized()) {
+    //                     mainWindow.hide();
+    //                 } else {
+    //                     if (mainWindow.isMinimized()) {
+    //                         mainWindow.restore();
+    //                     }
+    //                     mainWindow.show();
+    //                     mainWindow.focus();
+    //                 }
+    //             } else {
+    //                 createWindow();
+    //             }
+    //         } catch (error) {
+    //             console.error('Error handling tray double-click:', error);
+    //         }
+    //     });
+
+    //     // Single click on Windows shows context menu (handled automatically)
+    // } else {
+    //     // On macOS/Linux, use single click
+    //     tray.on('click', () => {
+    //         try {
+    //             if (mainWindow) {
+    //                 if (mainWindow.isVisible()) {
+    //                     mainWindow.hide();
+    //                 } else {
+    //                     mainWindow.show();
+    //                     if (process.platform === 'darwin') {
+    //                         app.dock.show();
+    //                     }
+    //                 }
+    //             } else {
+    //                 createWindow();
+    //             }
+    //         } catch (error) {
+    //             console.error('Error handling tray click:', error);
+    //         }
+    //     });
+    // }
+
+    // // Handle tray errors
+    // tray.on('error', (error) => {
+    //     console.error('Tray error:', error);
+    // });
 }
 
 // App event handlers
@@ -123,11 +179,11 @@ app.whenReady().then(() => {
     createTray();
     createWindow();
 
-    app.on('activate', () => {
-        if (BrowserWindow.getAllWindows().length === 0) {
-            createWindow();
-        }
-    });
+    // app.on('activate', () => {
+    //     if (BrowserWindow.getAllWindows().length === 0) {
+    //         createWindow();
+    //     }
+    // });
 });
 
 app.on('window-all-closed', () => {
@@ -144,6 +200,7 @@ app.on('before-quit', () => {
 // IPC handlers for renderer process
 ipcMain.handle('get-sync-status', () => {
     // Mock sync data
+    console.log('Get sync status requested');
     return {
         status: 'syncing',
         filesSync: 1247,
