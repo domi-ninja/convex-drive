@@ -4,7 +4,7 @@ import { useMutation, useQuery } from "convex/react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { api } from "../../convex/_generated/api";
-import { Id } from "../../convex/_generated/dataModel";
+import { Doc, Id } from "../../convex/_generated/dataModel";
 import { useFolderContext } from "../contexts/FolderContext";
 import { FileTreeModal } from "./FileTreeModal";
 import { FileViewerModal, renderFileContent } from "./FileViewerModal";
@@ -547,9 +547,9 @@ export function FileManageTable() {
                         <h2 className={`text-2xl font-semibold cursor-pointer p-2`} onClick={() => setSelectedFiles(new Set())}>
                             {(
                                 <span>
-                                    {currentFolderPath?.map((folder, fidx) => (
+                                    {currentFolderPath?.map((folder: Doc<"folders">, fidx: number) => (
                                         <span key={folder._id}>
-                                            <span className="hover:text-blue-600 cursor-pointer" onClick={() => setCurrentFolderId(folder._id)}>
+                                            <span className="hover:text-blue-600 cursor-pointer" onClick={() => setCurrentFolderId(folder._id as Id<"folders">)}>
                                                 {(folder._id === rootFolderId ? (
                                                     <span>
                                                         <span className="pr-2">
