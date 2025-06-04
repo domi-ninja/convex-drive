@@ -1,6 +1,6 @@
 import { Authenticated, Unauthenticated, useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
-import { SignInForm } from "../SignInForm";
+import { SignInFormPassword } from "../auth/SignInFormPassword";
 import { FileManageTable } from "./FileManageTable";
 
 export function Content() {
@@ -18,7 +18,7 @@ export function Content() {
         <div className="flex flex-col gap-8">
             <Unauthenticated>
                 <div className="w-full max-w-md mx-auto">
-                    <SignInForm />
+                    <SignInFormPassword />
                 </div>
             </Unauthenticated>
             <Authenticated>
