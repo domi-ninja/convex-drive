@@ -3,9 +3,16 @@ import { useLocation } from "react-router-dom";
 import { api } from "../convex/_generated/api";
 import { FileUploadArea } from "./components";
 import { UserMenu } from "./components/UserMenu";
+import { useFolderContext } from "./contexts/FolderContext";
 
 export default function Header() {
     const location = useLocation();
+    const {
+        rootFolderId,
+        currentFolderId,
+        setCurrentFolderId,
+        files
+    } = useFolderContext();
     const isMainRoute = location.pathname === "/" || location.pathname.startsWith("/folder");
     const loggedInUser = useQuery(api.users.viewer);
 
@@ -21,7 +28,7 @@ export default function Header() {
                     <span className="bg-background text-primary">Zero Drive</span>
                 </a>
                 <Authenticated>
-                    {isMainRoute && (
+                    {(isMainRoute && files && files.length > 10) && (
                         <div className="hidden sm:block">
                             <FileUploadArea />
                         </div>
@@ -36,13 +43,13 @@ export default function Header() {
             </div>
 
             {/* Mobile file upload row - appears below main header on mobile only */}
-            <Authenticated>
+            {/* <Authenticated>
                 {isMainRoute && (
                     <div className="sm:hidden px-3 pb-3 pt-1 border-t border-gray-100">
                         <FileUploadArea />
                     </div>
                 )}
-            </Authenticated>
+            </Authenticated> */}
         </header>
     );
 }

@@ -10,10 +10,12 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuthActions } from "@convex-dev/auth/react";
 import { PersonIcon } from "@radix-ui/react-icons";
+import { useQuery } from "convex/react";
 import { Link } from "react-router-dom";
+import { api } from "../../convex/_generated/api";
 
 export function UserMenu({ }: {}) {
-  // const loggedInUser = useQuery(api.auth.loggedInUser);
+  const loggedInUser = useQuery(api.auth.loggedInUser);
   return (
     <div className="flex items-center gap-2 text-sm font-medium">
       <DropdownMenu>
@@ -27,11 +29,11 @@ export function UserMenu({ }: {}) {
           <DropdownMenuLabel>
             <Link
               to="/settings/profile"
-              className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 text-xs sm:text-sm text-foreground hover:text-foreground-hover hover:bg-background-hover rounded-md transition-colors text-black"
+              className="font-normal flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-foreground hover:text-foreground-hover hover:bg-background-hover rounded-md transition-colors text-black"
             >
               Profile
               <span className="truncate max-w-24 sm:max-w-none">
-                {/* {loggedInUser?.email ?? "anonymous"} */}
+                {loggedInUser?.email ?? "anonymous"}
               </span>
               <svg
                 className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500 flex-shrink-0"

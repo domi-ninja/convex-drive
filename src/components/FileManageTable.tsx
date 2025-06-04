@@ -7,6 +7,7 @@ import { api } from "../../convex/_generated/api";
 import { Doc, Id } from "../../convex/_generated/dataModel";
 import { useFolderContext } from "../contexts/FolderContext";
 import { FileTreeModal } from "./FileTreeModal";
+import { FileUploadArea } from "./FileUploadArea";
 import { FileViewerModal, renderFileContent } from "./FileViewerModal";
 
 type SortField = 'name' | 'extension' | 'size' | '_creationTime';
@@ -542,7 +543,7 @@ export function FileManageTable() {
         <div onClick={() => setIsMenuOpen(false)}>
             {/* className="select-none" */}
             <div className="pt-4">
-                <div className="grid grid-cols-1 md:grid-cols-3 items-center mb-4 gap-4">
+                <div className="flex justify-between md:grid md:grid-cols-3 items-center mb-4 gap-4">
                     <div className="flex items-center gap-2">
                         <h2 className={`text-2xl font-semibold cursor-pointer p-2`} onClick={() => setSelectedFiles(new Set())}>
                             {(
@@ -609,7 +610,7 @@ export function FileManageTable() {
                             <span className="hidden sm:inline">List</span>
                         </div>
 
-                        <div className="flex-1 flex justify-end pr-2">
+                        <div className="flex-1 flex justify-end pr-2 sm:hidden block">
                             <div className="relative">
                                 <button
                                     onClick={(e) => {
@@ -724,7 +725,7 @@ export function FileManageTable() {
                 </div>
 
 
-                <div className="overflow-x-auto">
+                <div className="overflow-x-auto flex-1 flex flex-col min-h-screen">
                     {viewMode === "list" && (
                         <div>
                             <table className="min-w-full bg-white border border-gray-200 rounded-lg shadow-sm select-none">
@@ -1033,18 +1034,25 @@ export function FileManageTable() {
                         </div>
                     )}
 
-                    {filesAndFolders.length === 0 && (
-                        <div className="flex items-center justify-center min-h-96">
-                            <div className="text-2xl text-gray-500 bg-gray-100 rounded-lg border border-gray-200 p-4 gap-4 flex items-center gap-2">
-                                <span>
-                                    {currentFolderId === rootFolderId ? "No Files yet" : `No Files here`}
-                                </span>
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-12 h-12">
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 9.776c.112-.017.227-.026.344-.026h15.812c.117 0 .232.009.344.026m-16.5 0a2.25 2.25 0 00-1.883 2.542l.857 6a2.25 2.25 0 002.227 1.932H19.05a2.25 2.25 0 002.227-1.932l.857-6a2.25 2.25 0 00-1.883-2.542m-16.5 0V6A2.25 2.25 0 016 3.75h3.879a1.5 1.5 0 011.06.44l2.122 2.12a1.5 1.5 0 001.06.44H18A2.25 2.25 0 0120.25 9v.776" />
-                                </svg>
+
+                    <div className="flex flex-col">
+                        {filesAndFolders.length === 0 && (
+                            <div className="p-8 flex-1 flex items-center justify-center">
+                                <div className="text-2xl text-on-secondary/50 bg-secondary rounded-lg border border-on-secondary px-8 flex items-center gap-2 min-h-32 w-fit">
+                                    <span>
+                                        {currentFolderId === rootFolderId ? "No Files yet" : `No Files here`}
+                                    </span>
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-12 h-12">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 9.776c.112-.017.227-.026.344-.026h15.812c.117 0 .232.009.344.026m-16.5 0a2.25 2.25 0 00-1.883 2.542l.857 6a2.25 2.25 0 002.227 1.932H19.05a2.25 2.25 0 002.227-1.932l.857-6a2.25 2.25 0 00-1.883-2.542m-16.5 0V6A2.25 2.25 0 016 3.75h3.879a1.5 1.5 0 011.06.44l2.122 2.12a1.5 1.5 0 001.06.44H18A2.25 2.25 0 0120.25 9v.776" />
+                                    </svg>
+                                </div>
                             </div>
+                        )}
+                        <div className="px-8 flex-1 flex">
+                            <FileUploadArea />
                         </div>
-                    )}
+                    </div>
+
                 </div>
             </div >
             <FileViewerModal

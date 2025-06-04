@@ -88,7 +88,8 @@ export function FileUploadArea() {
 
     return (
         <div
-            className={`py-4 px-4 border-2 ${isDragging ? "border-primary bg-blue-50" : "border-dashed border-gray-300 bg-gray-100"
+            className={`flex-1 w-full py-4 px-4 border-2 ${isDragging ? "border-primary bg-blue-50" :
+                "border-dashed border-on-secondary bg-secondary/10"
                 } rounded-lg transition-all duration-200`}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
@@ -110,11 +111,11 @@ export function FileUploadArea() {
                     />
                     <label
                         htmlFor="file-upload-input"
-                        className="p-4 bg-primary text-white rounded-md hover:bg-primary-hover cursor-pointer shadow-sm"
+                        className="p-4 bg-primary text-primary-foreground rounded-md hover:bg-primary-hover cursor-pointer shadow-sm"
                     >
                         Upload Files
                     </label>
-                    <span className={isDragging ? "text-primary" : "text-gray-500"}>
+                    <span className={isDragging ? "text-primary" : "text-primary hidden sm:block"}>
                         Drop folders here to upload
                     </span>
                 </div>
