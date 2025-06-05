@@ -8,7 +8,7 @@
     "dev:frontend": "node convert-colors.js && vite --open --port 5173 --host 0.0.0.0",
     "dev:backend": "convex dev",
     "predev": "convex dev --until-success && convex dashboard",
-    "build": "tsc && vite build",
+    "build": "tsc -p tsconfig.app.json && vite build",
     "lint": "tsc && tsc -p convex/tsconfig.json && eslint . --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "test": "vitest",
