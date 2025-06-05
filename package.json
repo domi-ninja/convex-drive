@@ -43,6 +43,7 @@
     "sonner": "^2.0.5",
     "tailwind-merge": "^2.3.0",
     "tailwindcss-animate": "^1.0.7",
+    "test-example": "link:",
     "twilio": "^5.2.0"
   },
   "devDependencies": {
