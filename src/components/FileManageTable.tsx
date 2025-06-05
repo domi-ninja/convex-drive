@@ -1,4 +1,5 @@
 import { cleanFileName } from "@/lib/file";
+import { getConvexSiteUrl } from "@/lib/utils";
 import { useAuthToken } from "@convex-dev/auth/react";
 import { useMutation, useQuery } from "convex/react";
 import { useEffect, useState } from "react";
@@ -284,7 +285,7 @@ export function FileManageTable() {
 
         try {
             const selectedItems = filesAndFolders.filter(f => selectedFiles.has(f._id));
-            const convexSiteUrl = (import.meta.env.VITE_CONVEX_URL as string).replace("convex.cloud", "convex.site");
+            const convexSiteUrl = getConvexSiteUrl();
 
             const headers: Record<string, string> = {
                 'Content-Type': 'application/json'

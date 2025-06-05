@@ -1,4 +1,5 @@
 import { HttpRouter } from "convex/server";
+import { getConvexSiteUrl } from "../src/lib/utils";
 import { api } from "./_generated/api";
 import { httpAction } from "./_generated/server";
 
@@ -41,7 +42,7 @@ export function httpDownloadZip(http: HttpRouter) {
                     "Content-Disposition": `attachment; filename="${result.filename}"`,
                     "Content-Type": "application/zip",
                     "Content-Length": result.content.byteLength.toString(),
-                    "Access-Control-Allow-Origin": "http://localhost:5173",
+                    "Access-Control-Allow-Origin": getConvexSiteUrl(),
                     "Access-Control-Allow-Methods": "POST, OPTIONS",
                     "Access-Control-Allow-Headers": "Content-Type, Authorization",
                     "Access-Control-Expose-Headers": "Content-Disposition",
@@ -61,7 +62,7 @@ export function httpDownloadZip(http: HttpRouter) {
         handler: httpAction(async (_) => {
             return new Response(null, {
                 headers: {
-                    "Access-Control-Allow-Origin": "*",
+                    "Access-Control-Allow-Origin": getConvexSiteUrl(),
                     "Access-Control-Allow-Methods": "POST, OPTIONS",
                     "Access-Control-Allow-Headers": "Content-Type, Authorization",
                     "Access-Control-Expose-Headers": "Content-Disposition",
