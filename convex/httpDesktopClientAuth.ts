@@ -8,7 +8,7 @@ export function getUserIdentity(http: HttpRouter) {
     http.route({
         path: "/auth/identity",
         method: "GET",
-        handler: httpAction(async (ctx, request) => {
+        handler: httpAction(async (ctx) => {
 
             const user = await ctx.auth.getUserIdentity();
             if (!user) {

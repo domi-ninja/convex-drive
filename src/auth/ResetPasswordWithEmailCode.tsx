@@ -49,8 +49,8 @@ export function ResetPasswordWithEmailCode({
           signIn(provider, formData).catch((error) => {
             console.error(error);
             toast(
-              "Code could not be verified or new password is too short, try again",
               {
+                title: "Code could not be verified or new password is too short, try again",
                 variant: "destructive",
               }
             );

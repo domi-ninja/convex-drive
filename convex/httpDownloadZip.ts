@@ -58,7 +58,7 @@ export function httpDownloadZip(http: HttpRouter) {
     http.route({
         path: "/download-zip",
         method: "OPTIONS",
-        handler: httpAction(async (_, request) => {
+        handler: httpAction(async (_) => {
             return new Response(null, {
                 headers: {
                     "Access-Control-Allow-Origin": "*",

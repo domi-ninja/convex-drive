@@ -8,9 +8,9 @@ import { useFolderContext } from "./contexts/FolderContext";
 export default function Header() {
     const location = useLocation();
     const {
-        rootFolderId,
-        currentFolderId,
-        setCurrentFolderId,
+        // rootFolderId,
+        // currentFolderId,
+        // setCurrentFolderId,
         files
     } = useFolderContext();
     const isMainRoute = location.pathname === "/" || location.pathname.startsWith("/folder");

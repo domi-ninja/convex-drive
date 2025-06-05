@@ -20,7 +20,7 @@ interface FileTreeModalProps {
 }
 
 export function FileTreeModal({ isOpen, onClose, onNavigate }: FileTreeModalProps) {
-    const { rootFolderId, currentFolderId, setCurrentFolderId } = useFolderContext();
+    const { rootFolderId, currentFolderId } = useFolderContext();
     const [expandedNodes, setExpandedNodes] = useState<Set<Id<"folders">>>(new Set());
     const [selectedNode, setSelectedNode] = useState<Id<"files"> | Id<"folders"> | null>(null);
 

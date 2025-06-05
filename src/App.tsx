@@ -1,9 +1,8 @@
-import { Authenticated, Unauthenticated, useQuery } from "convex/react";
+import { Authenticated, Unauthenticated } from "convex/react";
 import { ThemeProvider } from 'next-themes';
 import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 import { Toaster } from "sonner";
-import { api } from "../convex/_generated/api";
-import { SignInFormsShowcase } from "./auth/SignInFormsShowcase";
+import { SignInFormPassword } from "./auth/SignInFormPassword";
 import { FolderProvider } from "./contexts/FolderContext";
 import Header from "./Header";
 import { Home } from "./pages/Home";
@@ -11,7 +10,7 @@ import { DesktopClientManager } from "./pages/settings/DesktopClientMgr";
 import { Profile } from "./pages/settings/Profile";
 
 export default function App() {
-  const user = useQuery(api.users.viewer);
+  // const user = useQuery(api.users.viewer);
 
   return (
     <ThemeProvider
@@ -27,7 +26,7 @@ export default function App() {
             <main className="">
               <Unauthenticated>
                 <div className="flex-1 container mx-auto px-4 py-8 max-w-2xl pt-24">
-                  <SignInFormsShowcase />
+                  <SignInFormPassword />
                 </div>
               </Unauthenticated>
               <Authenticated>

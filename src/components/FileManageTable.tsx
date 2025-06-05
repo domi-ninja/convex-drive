@@ -200,7 +200,7 @@ export function FileManageTable() {
         return 0;
     });
 
-    const handleOpenFile = (fileId: Id<"files"> | Id<"folders">, name: string, type: "file" | "folder") => {
+    const handleOpenFile = (fileId: Id<"files"> | Id<"folders">, type: "file" | "folder") => {
         if (type !== "folder") {
             const file = filesAndFolders.find(f => f._id === fileId);
             if (file) {
@@ -423,14 +423,12 @@ export function FileManageTable() {
     const handleFinishCreateFolder = async () => {
         if (!currentFolderId) return;
 
-        const folderId = await saveFolderMutation({
+        await saveFolderMutation({
             folderId: currentFolderId,
             name: cleanFileName(newFolderName),
             type: "folder",
             size: 0,
         });
-
-        //setCurrentFolderId(folderId as Id<"folders">);
         setIsCreatingFolder(false);
         setNewFolderName("");
     };
@@ -864,7 +862,7 @@ export function FileManageTable() {
                                                             : ""
                                                             }`}
                                                         title={file.name}
-                                                        onClick={() => handleOpenFile(file._id, file.name, file.type as "file" | "folder")}
+                                                        onClick={() => handleOpenFile(file._id, file.type as "file" | "folder")}
                                                         onDragOver={file.type === "folder" ? handleDragOver : undefined}
                                                         onDragEnter={file.type === "folder" ? (e) => handleDragEnter(e, file._id as Id<"folders">) : undefined}
                                                         onDragLeave={file.type === "folder" ? handleDragLeave : undefined}
@@ -947,7 +945,7 @@ export function FileManageTable() {
                                         </div>
                                     ) : (
                                         <div className="h-48 bg-muted flex items-center justify-center flex-col gap-2"
-                                            onClick={() => handleOpenFile(file._id, file.name, file.type as "file" | "folder")}
+                                            onClick={() => handleOpenFile(file._id, file.type as "file" | "folder")}
                                         >
                                             {file.type === "folder" && (
                                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-12 h-12">
