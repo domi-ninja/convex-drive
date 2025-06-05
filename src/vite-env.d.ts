@@ -1,10 +1,2 @@
 /// <reference types="vite/client" />
-
-interface ImportMetaEnv {
-    readonly VITE_CONVEX_URL: string;
-    // more env variables...
-}
-
-interface ImportMeta {
-    readonly env: ImportMetaEnv;
-}
+/// <reference types="vite/types/importMeta.d.ts" />
