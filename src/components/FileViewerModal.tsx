@@ -5,8 +5,8 @@ import { FileOrFolder, formatDate, formatFileSize } from "./FileManageTable";
 export const renderFileContent = (file: FileOrFolder) => {
     if (!file.url) {
         return (
-            <div className="flex items-center justify-center h-96 bg-gray-100 rounded-lg w-full">
-                <span className="text-gray-500">File not available</span>
+            <div className="flex items-center justify-center h-96 bg-muted rounded-lg w-full">
+                <span className="text-muted-foreground">File not available</span>
             </div>
         );
     }
@@ -56,10 +56,10 @@ export const renderFileContent = (file: FileOrFolder) => {
 
     if (file.type?.startsWith("text/") || file.type === "application/json") {
         return (
-            <div className="bg-gray-100 p-4 rounded-lg h-96 overflow-auto w-full">
+            <div className="bg-muted p-4 rounded-lg h-96 overflow-auto w-full">
                 <iframe
                     src={file.url}
-                    className="w-full h-full border-none w-full"
+                    className="w-full h-full border-none"
                     title={file.name}
                 />
             </div>
@@ -68,18 +68,18 @@ export const renderFileContent = (file: FileOrFolder) => {
 
     // Default: show download link
     return (
-        <div className="flex flex-col items-center gap-4 p-8 bg-gray-50 rounded-lg">
+        <div className="flex flex-col items-center gap-4 p-8 bg-muted rounded-lg">
             <div className="text-6xl">📄</div>
             <div className="text-center">
-                <p className="text-lg font-medium text-gray-900">{file.name}</p>
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-lg font-medium text-foreground">{file.name}</p>
+                <p className="text-sm text-muted-foreground mt-1">
                     {file.type} • {formatFileSize(file.size || 0)}
                 </p>
             </div>
             <a
                 href={file.url}
                 download={file.name}
-                className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+                className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
             >
                 Download File
             </a>
@@ -133,15 +133,15 @@ export function FileViewerModal({ viewingFiles, file, setFile, isOpen, onClose }
 
     return (
         <div
-            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-start z-50 p-4 flex-col"
+            className="fixed inset-0 bg-background/50 flex items-center justify-start z-50 p-4 flex-col"
             onClick={handleBackdropClick}
         >
-            <div className="bg-white rounded-lg max-w-[90vw] max-h-[90vh] overflow-auto">
-                <div className="grid grid-cols-1 md:grid-cols-3 items-center justify-between p-4 border-b">
+            <div className="bg-popover text-popover-foreground rounded-lg max-w-[90vw] max-h-[90vh] overflow-auto">
+                <div className="grid grid-cols-1 md:grid-cols-3 items-center justify-between p-4 border-b border-border">
                     <div className="flex items-center justify-between">
                         <div>
-                            <h2 className="text-xl font-semibold text-gray-900">{file.name}</h2>
-                            <p className="text-sm text-gray-500">
+                            <h2 className="text-xl font-semibold">{file.name}</h2>
+                            <p className="text-sm text-muted-foreground">
                                 {file.type} • {formatFileSize(file.size || 0)} • {formatDate(file._creationTime)}
                             </p>
                         </div>
@@ -150,7 +150,7 @@ export function FileViewerModal({ viewingFiles, file, setFile, isOpen, onClose }
                                 <a
                                     href={file.url}
                                     download={file.name}
-                                    className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-md"
+                                    className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md"
                                     title="Download"
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
@@ -160,7 +160,7 @@ export function FileViewerModal({ viewingFiles, file, setFile, isOpen, onClose }
                             )}
                             <button
                                 onClick={onClose}
-                                className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-md"
+                                className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md"
                                 title="Close"
                             >
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
@@ -172,13 +172,13 @@ export function FileViewerModal({ viewingFiles, file, setFile, isOpen, onClose }
                     <div className="flex flex-row items-center justify-center gap-4 p-4">
                         <button
                             onClick={onPrevious}
-                            className="px-4 py-2 text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
+                            className="px-4 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/90 transition-colors"
                         >
                             Prev
                         </button>
                         <button
                             onClick={onNext}
-                            className="px-4 py-2 text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
+                            className="px-4 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/90 transition-colors"
                         >
                             Next
                         </button>
@@ -188,7 +188,7 @@ export function FileViewerModal({ viewingFiles, file, setFile, isOpen, onClose }
                             <a
                                 href={file.url}
                                 download={file.name}
-                                className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-md"
+                                className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md"
                                 title="Download"
                             >
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
@@ -198,7 +198,7 @@ export function FileViewerModal({ viewingFiles, file, setFile, isOpen, onClose }
                         )}
                         <button
                             onClick={onClose}
-                            className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-md"
+                            className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md"
                             title="Close"
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">

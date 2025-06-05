@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "npm-run-all --parallel dev:frontend dev:backend",
-    "dev:frontend": "vite --open --port 5173 --host 0.0.0.0",
+    "dev:frontend": "node convert-colors.js && vite --open --port 5173 --host 0.0.0.0",
     "dev:backend": "convex dev",
     "predev": "convex dev --until-success && convex dashboard",
     "build": "tsc && vite build",
@@ -43,7 +43,6 @@
     "sonner": "^2.0.5",
     "tailwind-merge": "^2.3.0",
     "tailwindcss-animate": "^1.0.7",
-    "test-example": "link:",
     "twilio": "^5.2.0"
   },
   "devDependencies": {

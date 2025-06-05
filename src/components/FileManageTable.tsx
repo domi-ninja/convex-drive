@@ -396,15 +396,15 @@ export function FileManageTable() {
     const SortIcon = ({ field }: { field: SortField }) => {
         const sortIndex = sortCriteria.findIndex(c => c.field === field);
         if (sortIndex === -1) {
-            return <span className="text-gray-400">↕</span>;
+            return <span className="text-muted-foreground">↕</span>;
         }
         const sort = sortCriteria[sortIndex];
         const priorityNumber = sortCriteria.length > 1 ? sortIndex + 1 : '';
         const arrow = sort.direction === 'asc' ? '↑' : '↓';
         return (
-            <span className="text-blue-600 flex items-center gap-1">
+            <span className="text-accent flex items-center gap-1">
                 {arrow}
-                {priorityNumber && <span className="text-xs bg-blue-100 rounded-full w-4 h-4 flex items-center justify-center">{priorityNumber}</span>}
+                {priorityNumber && <span className="text-xs bg-accent/20 rounded-full w-4 h-4 flex items-center justify-center">{priorityNumber}</span>}
             </span>
         );
     };
@@ -550,7 +550,7 @@ export function FileManageTable() {
                                 <span>
                                     {currentFolderPath?.map((folder: Doc<"folders">, fidx: number) => (
                                         <span key={folder._id}>
-                                            <span className="hover:text-blue-600 cursor-pointer" onClick={() => setCurrentFolderId(folder._id as Id<"folders">)}>
+                                            <span className="hover:text-accent cursor-pointer" onClick={() => setCurrentFolderId(folder._id as Id<"folders">)}>
                                                 {(folder._id === rootFolderId ? (
                                                     <span>
                                                         <span className="pr-2">
@@ -563,16 +563,15 @@ export function FileManageTable() {
                                                 ) : (
                                                     <span>
                                                         {folder._id === currentFolderId ?
-                                                            <span className="text-blue-600">{folder.name}</span>
+                                                            <span className="text-accent">{folder.name}</span>
                                                             :
                                                             <span>{folder.name}</span>
                                                         }
                                                     </span>
                                                 ))}
-
                                             </span>
                                             {(fidx !== currentFolderPath.length - 1) && (
-                                                <span className="text-gray-500 px-1">
+                                                <span className="text-muted-foreground px-1">
                                                     /
                                                 </span>
                                             )}
@@ -585,7 +584,7 @@ export function FileManageTable() {
                         {selectedFiles.size > 0 ? (<button onClick={(e) => {
                             e.stopPropagation();
                             setSelectedFiles(new Set());
-                        }} className={`cursor-pointer px-4 py-2 flex items-center gap-2 ${selectedFiles.size > 0 ? "bg-gray-200 rounded-md w-fit" : ""}`}>{selectedFiles.size} Files Selected
+                        }} className={`cursor-pointer px-4 py-2 flex items-center gap-2 ${selectedFiles.size > 0 ? "bg-muted text-muted-foreground rounded-md w-fit" : ""}`}>{selectedFiles.size} Files Selected
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-4">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                             </svg>
@@ -595,14 +594,14 @@ export function FileManageTable() {
                             </div>)}
                     </div>
                     <div className="flex items-center gap-2 justify-start lg:justify-center">
-                        <div onClick={() => setViewMode("grid")} className={`flex items-center gap-2 cursor-pointer p-4 rounded-md ${viewMode === "grid" ? "bg-gray-200" : ""}`}>
+                        <div onClick={() => setViewMode("grid")} className={`flex items-center gap-2 cursor-pointer p-4 rounded-md ${viewMode === "grid" ? "bg-muted text-muted-foreground" : ""}`}>
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 4.75h6.5v6.5h-6.5v-6.5zM13.75 4.75h6.5v6.5h-6.5v-6.5zM3.75 13.75h6.5v6.5h-6.5v-6.5zM13.75 13.75h6.5v6.5h-6.5v-6.5z" />
                             </svg>
 
                             <span className="hidden sm:inline">Grid</span>
                         </div>
-                        <div onClick={() => setViewMode("list")} className={`flex items-center gap-2 cursor-pointer p-4 rounded-md ${viewMode === "list" ? "bg-gray-200" : ""}`}>
+                        <div onClick={() => setViewMode("list")} className={`flex items-center gap-2 cursor-pointer p-4 rounded-md ${viewMode === "list" ? "bg-muted text-muted-foreground" : ""}`}>
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
                             </svg>
@@ -617,16 +616,16 @@ export function FileManageTable() {
                                         e.stopPropagation();
                                         setIsMenuOpen(!isMobileMenuOpen);
                                     }}
-                                    className="p-4 rounded-md hover:bg-gray-100"
+                                    className="p-4 rounded-md hover:bg-muted"
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 12.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 18.75a.75.75 0 110-1.5.75.75 0 010 1.5z" />
                                     </svg>
                                 </button>
                                 {isMobileMenuOpen && (
-                                    <div className="absolute right-0 w-48 bg-white rounded-md shadow-lg z-10 border border-gray-200">
+                                    <div className="absolute right-0 w-48 bg-popover text-popover-foreground rounded-md shadow-lg z-10 border border-border">
                                         <button
-                                            className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                                            className="w-full text-left px-4 py-2 text-sm hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                                             onClick={handleCreateFolder} >
                                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 inline-block">
                                                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 10.5v6m3-3H9m4.06-7.19l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z" />
@@ -639,7 +638,7 @@ export function FileManageTable() {
                                                 setIsTreeModalOpen(true);
                                                 setIsMenuOpen(false);
                                             }}
-                                            className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                                            className="w-full text-left px-4 py-2 text-sm hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                                         >
                                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-5">
                                                 <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 7.5h-.75A2.25 2.25 0 004.5 9.75v7.5a2.25 2.25 0 002.25 2.25h7.5a2.25 2.25 0 002.25-2.25v-7.5a2.25 2.25 0 00-2.25-2.25h-.75m0-3l-3-3m0 0l-3 3m3-3v11.25m6-2.25h.75a2.25 2.25 0 012.25 2.25v7.5a2.25 2.25 0 01-2.25 2.25h-7.5a2.25 2.25 0 01-2.25-2.25v-.75" />
@@ -653,7 +652,7 @@ export function FileManageTable() {
                                                 setIsMenuOpen(false);
                                             }}
                                             disabled={selectedFiles.size === 0}
-                                            className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                                            className="w-full text-left px-4 py-2 text-sm hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                                         >
                                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-5">
                                                 <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
@@ -667,7 +666,7 @@ export function FileManageTable() {
                                                 setIsMenuOpen(false);
                                             }}
                                             disabled={selectedFiles.size === 0}
-                                            className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                                            className="w-full text-left px-4 py-2 text-sm text-destructive hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                                         >
                                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-5">
                                                 <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
@@ -683,7 +682,7 @@ export function FileManageTable() {
                     </div>
 
                     <div className="hidden md:flex justify-end gap-2">
-                        <button className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm" onClick={handleCreateFolder} >
+                        <button className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm" onClick={handleCreateFolder} >
 
                             <div>
 
@@ -696,14 +695,14 @@ export function FileManageTable() {
                         <button
                             onClick={handleDownloadSelected}
                             disabled={selectedFiles.size === 0}
-                            className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+                            className="px-4 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/90 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
                         >
                             Download
                         </button>
                         <button
                             onClick={handleDeleteSelected}
                             disabled={selectedFiles.size === 0}
-                            className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+                            className="px-4 py-2 bg-destructive text-destructive-foreground rounded-md hover:bg-destructive/90 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
                         >
                             Delete
                         </button>
@@ -713,8 +712,8 @@ export function FileManageTable() {
                                 setIsTreeModalOpen(true);
                                 setIsMenuOpen(false);
                             }}
-                            className="px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-red-600 disabled:opacity-50 
-                            disabled:cursor-not-allowed shadow-sm disabled:bg-gray-300"
+                            className="px-4 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/90 disabled:opacity-50 
+                            disabled:cursor-not-allowed shadow-sm disabled:bg-muted"
                         >
                             Move
                         </button>
@@ -728,19 +727,19 @@ export function FileManageTable() {
                 <div className="overflow-x-auto flex-1 flex flex-col min-h-screen">
                     {viewMode === "list" && (
                         <div>
-                            <table className="min-w-full bg-white border border-gray-200 rounded-lg shadow-sm select-none">
-                                <thead className="bg-gray-50">
+                            <table className="min-w-full bg-card text-card-foreground border border-border rounded-lg shadow-sm select-none">
+                                <thead className="bg-muted">
                                     <tr>
                                         <th className="px-4 py-3 text-left">
                                             <input
                                                 type="checkbox"
                                                 checked={selectedFiles.size === filesAndFolders.length && filesAndFolders.length > 0}
                                                 onChange={handleSelectAll}
-                                                className="form-checkbox h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                                                className="form-checkbox h-4 w-4 text-primary rounded border-input focus:ring-ring"
                                             />
                                         </th>
                                         <th
-                                            className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                                            className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider cursor-pointer hover:bg-muted"
                                             onClick={() => handleSort('name')}
                                         >
                                             <div className="flex items-center gap-1">
@@ -748,10 +747,10 @@ export function FileManageTable() {
                                                 <SortIcon field="name" />
                                             </div>
                                         </th>
-                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100">
+                                        <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider cursor-pointer hover:bg-muted">
                                         </th>
                                         <th
-                                            className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                                            className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider cursor-pointer hover:bg-muted"
                                             onClick={() => handleSort('extension')}
                                         >
                                             <div className="flex items-center gap-1">
@@ -760,7 +759,7 @@ export function FileManageTable() {
                                             </div>
                                         </th>
                                         <th
-                                            className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                                            className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider cursor-pointer hover:bg-muted"
                                             onClick={() => handleSort('size')}
                                         >
                                             <div className="flex items-center gap-1">
@@ -769,7 +768,7 @@ export function FileManageTable() {
                                             </div>
                                         </th>
                                         <th
-                                            className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                                            className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider cursor-pointer hover:bg-muted"
                                             onClick={() => handleSort('_creationTime')}
                                         >
                                             <div className="flex items-center gap-1">
@@ -777,16 +776,15 @@ export function FileManageTable() {
                                                 <SortIcon field="_creationTime" />
                                             </div>
                                         </th>
-                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                                             Preview
                                         </th>
                                     </tr>
                                 </thead>
-                                <tbody className="bg-white divide-y divide-gray-200">
+                                <tbody className="bg-card divide-y divide-border">
                                     {(isCreatingFolder && (
                                         <tr className="">
                                             <td></td>
-
                                             <td colSpan={2} className="px-4 py-1 whitespace-nowrap">
                                                 <div className="flex items-center gap-2 flex-1">
                                                     <input
@@ -795,19 +793,19 @@ export function FileManageTable() {
                                                         onChange={(e) => setNewFolderName(e.target.value)}
                                                         onBlur={handleCancelCreateFolder}
                                                         onKeyDown={handleCreateFolderKeyDown}
-                                                        className="text-sm font-medium text-gray-900 border border-blue-500 rounded px-2 focus:outline-none focus:ring-2 focus:ring-blue-500 flex-1"
+                                                        className="text-sm font-medium border border-input rounded px-2 focus:outline-none focus:ring-2 focus:ring-ring flex-1"
                                                         autoFocus
                                                     />
                                                     <button
                                                         onClick={handleSaveRename}
-                                                        className="text-green-600 hover:text-green-800"
+                                                        className="text-accent hover:text-accent/90"
                                                         title="Save"
                                                     >
                                                         ✓
                                                     </button>
                                                     <button
                                                         onClick={handleCancelRename}
-                                                        className="text-red-600 hover:text-red-800"
+                                                        className="text-destructive hover:text-destructive/90"
                                                         title="Cancel"
                                                     >
                                                         ✕
@@ -819,7 +817,7 @@ export function FileManageTable() {
                                     {sortedFiles.map((file) => (
                                         <tr
                                             key={file._id}
-                                            className={`hover:bg-gray-50 ${selectedFiles.has(file._id) ? 'bg-blue-50' : ''} ${draggedItems.has(file._id) ? 'opacity-50' : ''}`}
+                                            className={`hover:bg-muted ${selectedFiles.has(file._id) ? 'bg-accent/10' : ''} ${draggedItems.has(file._id) ? 'opacity-50' : ''}`}
                                             draggable={selectedFiles.has(file._id) || draggedItems.has(file._id)}
                                             onDragStart={(e) => handleDragStart(e, file._id)}
                                             onDragEnd={handleDragEnd}
@@ -829,7 +827,7 @@ export function FileManageTable() {
                                                     type="checkbox"
                                                     checked={selectedFiles.has(file._id)}
                                                     onChange={(e) => handleFileSelect(file._id, e)}
-                                                    className="form-checkbox h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                                                    className="form-checkbox h-4 w-4 text-primary rounded border-input focus:ring-ring"
                                                 />
                                             </td>
                                             <td className="px-4 py-1 whitespace-nowrap overflow-hidden text-ellipsis">
@@ -841,19 +839,19 @@ export function FileManageTable() {
                                                             onChange={(e) => setRenamingThing(prev => prev ? { ...prev, name: e.target.value } : null)}
                                                             onKeyDown={handleRenameKeyDown}
                                                             onBlur={handleSaveRename}
-                                                            className="text-sm font-medium text-gray-900 border border-blue-500 rounded px-2 focus:outline-none focus:ring-2 focus:ring-blue-500 flex-1"
+                                                            className="text-sm font-medium border border-input rounded px-2 focus:outline-none focus:ring-2 focus:ring-ring flex-1"
                                                             autoFocus
                                                         />
                                                         <button
                                                             onClick={handleSaveRename}
-                                                            className="text-green-600 hover:text-green-800"
+                                                            className="text-accent hover:text-accent/90"
                                                             title="Save"
                                                         >
                                                             ✓
                                                         </button>
                                                         <button
                                                             onClick={handleCancelRename}
-                                                            className="text-red-600 hover:text-red-800"
+                                                            className="text-destructive hover:text-destructive/90"
                                                             title="Cancel"
                                                         >
                                                             ✕
@@ -861,8 +859,8 @@ export function FileManageTable() {
                                                     </div>
                                                 ) : (
                                                     <div
-                                                        className={`text-sm font-medium text-gray-900 max-w-xs cursor-pointer ${file.type === "folder" && dragOverFolder === file._id
-                                                            ? "bg-blue-100 border-2 border-blue-300 border-dashed rounded p-2"
+                                                        className={`text-sm font-medium max-w-xs cursor-pointer ${file.type === "folder" && dragOverFolder === file._id
+                                                            ? "bg-accent/20 border-2 border-accent border-dashed rounded p-2"
                                                             : ""
                                                             }`}
                                                         title={file.name}
@@ -872,9 +870,9 @@ export function FileManageTable() {
                                                         onDragLeave={file.type === "folder" ? handleDragLeave : undefined}
                                                         onDrop={file.type === "folder" ? (e) => handleDropOnFolder(e, file._id as Id<"folders">, file.name) : undefined}
                                                     >
-                                                        <span className="group hover:text-blue-600">
-                                                            <span className="group-hover:text-blue-600">{file.name}</span>
-                                                            <span className="text-gray-400 group-hover:text-blue-600">
+                                                        <span className="group hover:text-accent">
+                                                            <span className="group-hover:text-accent">{file.name}</span>
+                                                            <span className="text-muted-foreground group-hover:text-accent">
                                                                 {(file.extension && file.extension !== "") ? `.${file.extension}` : ""}
                                                             </span>
                                                         </span>
@@ -884,7 +882,7 @@ export function FileManageTable() {
                                             <td className="px-4 py-1 whitespace-nowrap">
                                                 <button
                                                     onClick={() => handleStartRename(file._id, file.name, file.type as "file" | "folder")}
-                                                    className="hover:text-blue-800 w-full hover:bg-blue-100 rounded-md p-1"
+                                                    className="hover:text-accent w-full hover:bg-muted rounded-md p-1"
                                                 >
                                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
                                                         <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
@@ -892,16 +890,16 @@ export function FileManageTable() {
                                                 </button>
                                             </td>
                                             <td className="px-4 py-1 whitespace-nowrap">
-                                                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${file.type === "folder" ? "bg-blue-100 text-blue-800" : "bg-gray-100 text-gray-800"}`}>
+                                                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${file.type === "folder" ? "bg-accent text-accent-foreground" : "bg-muted text-muted-foreground"}`}>
                                                     {
                                                         file.type === "folder" ? "folder" : file.extension
                                                     }
                                                 </span>
                                             </td>
-                                            <td className="px-4 py-1 whitespace-nowrap text-sm text-gray-500">
+                                            <td className="px-4 py-1 whitespace-nowrap text-sm text-muted-foreground">
                                                 {file.type === "folder" ? "" : formatFileSize(file.size || 0)}
                                             </td>
-                                            <td className="px-4 py-1 whitespace-nowrap text-sm text-gray-500">
+                                            <td className="px-4 py-1 whitespace-nowrap text-sm text-muted-foreground">
                                                 {formatDate(file._creationTime)}
                                             </td>
                                             <td className="px-4 whitespace-nowrap">
@@ -909,11 +907,11 @@ export function FileManageTable() {
                                                     <img
                                                         src={file.url}
                                                         alt={file.name}
-                                                        className="h-8 w-8 object-cover rounded-md border"
+                                                        className="h-8 w-8 object-cover rounded-sm"
                                                     />
                                                 ) : (
-                                                    <div className="h-8 w-8 bg-gray-100 rounded-md flex items-center justify-center">
-                                                        <span className="text-xs text-gray-500">📄</span>
+                                                    <div className="h-8 w-8 bg-muted rounded-md flex items-center justify-center">
+                                                        <span className="text-xs text-muted-foreground">📄</span>
                                                     </div>
                                                 )}
                                             </td>
@@ -921,7 +919,6 @@ export function FileManageTable() {
                                     ))}
                                 </tbody>
                             </table>
-
                         </div>
                     )}
                     {viewMode === "grid" && (
@@ -929,9 +926,9 @@ export function FileManageTable() {
                             {sortedFiles.map((file) => (
                                 <div
                                     key={file._id}
-                                    className={`bg-white rounded-lg border border-gray-200 w-full ${draggedItems.has(file._id) ? 'opacity-50' : ''
+                                    className={`bg-card text-card-foreground rounded-lg border border-border w-full ${draggedItems.has(file._id) ? 'opacity-50' : ''
                                         } ${file.type === "folder" && dragOverFolder === file._id
-                                            ? "bg-blue-100 border-2 border-blue-300 border-dashed"
+                                            ? "bg-accent/20 border-2 border-accent border-dashed"
                                             : ""
                                         }`}
                                     draggable={selectedFiles.has(file._id) || draggedItems.has(file._id)}
@@ -945,11 +942,11 @@ export function FileManageTable() {
                                     {file.url && file.type !== "folder" ? (
                                         <div
                                             onClick={() => openFileModal(file)}
-                                            className="h-48 bg-gray-100 flex items-center justify-center flex-col gap-2 overflow-hidden">
+                                            className="h-48 bg-muted flex items-center justify-center flex-col gap-2 overflow-hidden">
                                             {renderFileContent(file)}
                                         </div>
                                     ) : (
-                                        <div className="h-48 bg-gray-100 flex items-center justify-center flex-col gap-2"
+                                        <div className="h-48 bg-muted flex items-center justify-center flex-col gap-2"
                                             onClick={() => handleOpenFile(file._id, file.name, file.type as "file" | "folder")}
                                         >
                                             {file.type === "folder" && (
@@ -957,36 +954,34 @@ export function FileManageTable() {
                                                     <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-8.69-6.44l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z" />
                                                 </svg>
                                             )}
-                                            {/* <p className="text-sm text-gray-500">{file.type}</p> */}
-                                            {file.size && <p className="text-sm text-gray-500">{formatFileSize(file.size || 0)}</p>}
-                                            {/* <p className="text-sm text-gray-500">{formatDate(file._creationTime)}</p> */}
+                                            {file.size && <p className="text-sm text-muted-foreground">{formatFileSize(file.size || 0)}</p>}
                                         </div>
                                     )}
                                     <div className="flex flex-row gap-2 py-2 w-full flex-wrap text-baseline p-2">
                                         <label className="pr-1">
-                                            <input type="checkbox" checked={selectedFiles.has(file._id)} onChange={(e) => handleFileSelect(file._id, e)} className="form-checkbox h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500 flex-1" />
+                                            <input type="checkbox" checked={selectedFiles.has(file._id)} onChange={(e) => handleFileSelect(file._id, e)} className="form-checkbox h-4 w-4 text-primary rounded border-input focus:ring-ring flex-1" />
                                         </label>
                                         {renamingThing?.id === file._id ? (
-                                            <div className="flex items-center gap-2 flex-1 z-10 bg-white shadow-xl p-4">
+                                            <div className="flex items-center gap-2 flex-1 z-10 bg-popover text-popover-foreground shadow-xl p-4">
                                                 <input
                                                     type="text"
                                                     value={renamingThing?.name}
                                                     onChange={(e) => setRenamingThing(prev => prev ? { ...prev, name: e.target.value } : null)}
                                                     onKeyDown={handleRenameKeyDown}
                                                     onBlur={handleSaveRename}
-                                                    className="text-gray-900 border border-blue-500 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 flex-1"
+                                                    className="border border-input rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-ring flex-1"
                                                     autoFocus
                                                 />
                                                 <button
                                                     onClick={handleSaveRename}
-                                                    className="text-green-600 hover:text-green-800"
+                                                    className="text-accent hover:text-accent/90"
                                                     title="Save"
                                                 >
                                                     ✓
                                                 </button>
                                                 <button
                                                     onClick={handleCancelRename}
-                                                    className="text-red-600 hover:text-red-800"
+                                                    className="text-destructive hover:text-destructive/90"
                                                     title="Cancel"
                                                 >
                                                     ✕
@@ -994,12 +989,12 @@ export function FileManageTable() {
                                             </div>
                                         ) : (
                                             <h3
-                                                className="text-gray-900 cursor-pointer hover:text-blue-600 break-words break-all"
+                                                className="cursor-pointer hover:text-accent break-words break-all"
                                                 onClick={() => handleStartRename(file._id, file.name, file.type as "file" | "folder")}
                                             >
-                                                <span className="group hover:text-blue-600">
-                                                    <span className="group-hover:text-blue-600">{file.name}</span>
-                                                    <span className="text-gray-400 group-hover:text-blue-600">
+                                                <span className="group hover:text-accent">
+                                                    <span className="group-hover:text-accent">{file.name}</span>
+                                                    <span className="text-muted-foreground group-hover:text-accent">
                                                         {(file.extension && file.extension !== "") ? `.${file.extension}` : ""}
                                                     </span>
                                                 </span>
@@ -1009,12 +1004,12 @@ export function FileManageTable() {
                                 </div>
                             ))}
                             {(isCreatingFolder ? (
-                                <div onClick={() => handleCreateFolder()} className="bg-gray-100 rounded-lg border border-gray-200 w-full p-4 flex items-end gap-2 cursor-pointer hover:bg-gray-200 h-32">
+                                <div onClick={() => handleCreateFolder()} className="bg-muted rounded-lg border border-border w-full p-4 flex items-end gap-2 cursor-pointer hover:bg-muted/90 h-32">
                                     <div className="flex items-center gap-2 flex-col">
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 inline-block">
                                             <path strokeLinecap="round" strokeLinejoin="round" d="M12 10.5v6m3-3H9m4.06-7.19l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z" />
                                         </svg>
-                                        <span className="text-blue-500 font-medium text-lg">
+                                        <span className="text-accent font-medium text-lg">
                                             New Folder
                                         </span>
                                         {(isCreatingFolder) ? (
@@ -1025,7 +1020,7 @@ export function FileManageTable() {
                                                 onChange={(e) => setNewFolderName(e.target.value)}
                                                 onBlur={handleCancelCreateFolder}
                                                 onKeyDown={handleCreateFolderKeyDown}
-                                                className="text-gray-900 border border-blue-500 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm text-break"
+                                                className="border border-input rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-ring text-sm text-break"
                                                 autoFocus
                                             />
                                         ) : null}
@@ -1038,7 +1033,7 @@ export function FileManageTable() {
                     <div className="flex flex-col">
                         {filesAndFolders.length === 0 && (
                             <div className="p-8 flex-1 flex items-center justify-center">
-                                <div className="text-2xl text-on-secondary/50 bg-secondary rounded-lg border border-on-secondary px-8 flex items-center gap-2 min-h-32 w-fit">
+                                <div className="text-2xl text-muted-foreground bg-muted rounded-lg border border-border px-8 flex items-center gap-2 min-h-32 w-fit">
                                     <span>
                                         {currentFolderId === rootFolderId ? "No Files yet" : `No Files here`}
                                     </span>

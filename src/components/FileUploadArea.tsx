@@ -11,7 +11,6 @@ export function FileUploadArea() {
     const { uploadingCount, isUploading, currentFolderId, setUploadingCount, setIsUploading } = useFolderContext();
 
     const handleUploadFiles = async (files: FileList) => {
-
         if (!currentFolderId) {
             toast.error("No folder selected");
             return;
@@ -44,7 +43,6 @@ export function FileUploadArea() {
             }
             const { storageId } = await result.json();
 
-            // use js stdblib to get the name and extension
             const { name, extension } = splitFileName(file.name);
 
             await saveFile({
@@ -88,8 +86,8 @@ export function FileUploadArea() {
 
     return (
         <div
-            className={`flex-1 w-full py-4 px-4 border-2 ${isDragging ? "border-primary bg-blue-50" :
-                "border-dashed border-on-secondary bg-secondary/10"
+            className={`flex-1 w-full py-4 px-4 border-2 ${isDragging ? "border-primary bg-primary/10" :
+                "border-dashed border-muted-foreground bg-muted"
                 } rounded-lg transition-all duration-200`}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
@@ -97,8 +95,8 @@ export function FileUploadArea() {
         >
             {isUploading ? (
                 <div className="flex justify-center items-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
-                    <span className="ml-2">Uploading {uploadingCount} files</span>
+                    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+                    <span className="ml-2 text-foreground">Uploading {uploadingCount} files</span>
                 </div>
             ) : (
                 <div className="flex justify-center flex-row items-center flex-wrap gap-4">
@@ -111,11 +109,11 @@ export function FileUploadArea() {
                     />
                     <label
                         htmlFor="file-upload-input"
-                        className="p-4 bg-primary text-primary-foreground rounded-md hover:bg-primary-hover cursor-pointer shadow-sm"
+                        className="p-4 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 cursor-pointer shadow-sm"
                     >
                         Upload Files
                     </label>
-                    <span className={isDragging ? "text-primary" : "text-primary hidden sm:block"}>
+                    <span className={isDragging ? "text-primary" : "text-muted-foreground hidden sm:block"}>
                         Drop folders here to upload
                     </span>
                 </div>

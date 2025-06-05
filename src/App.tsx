@@ -21,7 +21,7 @@ export default function App() {
       disableTransitionOnChange
     >
       <Router>
-        <div id="background" className="min-h-screen flex flex-col">
+        <div id="background" className="min-h-screen flex flex-col bg-background text-foreground">
           <FolderProvider>
             <Header />
             <main className="">
