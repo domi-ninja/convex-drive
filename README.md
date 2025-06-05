@@ -1,7 +1,11 @@
-# Google Drive App
+# Google Drive Convex Demo
   
-I built my own google drive in 4 days to test out [convex.dev](https://convex.dev).
+I built this in 4 days to test out [convex.dev](https://convex.dev).
 
 Try it out here: https://image-zero.vercel.app/
 
-`npm run dev` to run locally
+- Drag & Drop upload
+- Folder support with a ton of features
+- Recursive ZIP download of everything
+
+`pnpm dev` to run locally
