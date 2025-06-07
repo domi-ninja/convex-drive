@@ -1,5 +1,4 @@
 import { HttpRouter } from "convex/server";
-import { getConvexSiteUrl } from "../src/lib/utils";
 import { api } from "./_generated/api";
 import { httpAction } from "./_generated/server";
 
@@ -36,13 +35,15 @@ export function httpDownloadZip(http: HttpRouter) {
                 filesOrFolders: fileOrFolders
             });
 
+            const urls = await ctx.runAction(api.utils.getEnvironmentUrls, {});
+            const convexSiteUrl = urls.CONVEX_SITE_URL;
             console.log(result);
             return new Response(result.content, {
                 headers: {
                     "Content-Disposition": `attachment; filename="${result.filename}"`,
                     "Content-Type": "application/zip",
                     "Content-Length": result.content.byteLength.toString(),
-                    "Access-Control-Allow-Origin": getConvexSiteUrl(),
+                    "Access-Control-Allow-Origin": (process.env.NODE_ENV === "development" ? "*" : convexSiteUrl),
                     "Access-Control-Allow-Methods": "POST, OPTIONS",
                     "Access-Control-Allow-Headers": "Content-Type, Authorization",
                     "Access-Control-Expose-Headers": "Content-Disposition",
@@ -59,10 +60,14 @@ export function httpDownloadZip(http: HttpRouter) {
     http.route({
         path: "/download-zip",
         method: "OPTIONS",
-        handler: httpAction(async (_) => {
+        handler: httpAction(async (ctx) => {
+
+            const urls = await ctx.runAction(api.utils.getEnvironmentUrls, {});
+            const convexSiteUrl = urls.CONVEX_SITE_URL;
+
             return new Response(null, {
                 headers: {
-                    "Access-Control-Allow-Origin": getConvexSiteUrl(),
+                    "Access-Control-Allow-Origin": (process.env.NODE_ENV === "development" ? "*" : convexSiteUrl),
                     "Access-Control-Allow-Methods": "POST, OPTIONS",
                     "Access-Control-Allow-Headers": "Content-Type, Authorization",
                     "Access-Control-Expose-Headers": "Content-Disposition",

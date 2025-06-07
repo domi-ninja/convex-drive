@@ -9,10 +9,16 @@
     "strict": true,
     "skipLibCheck": true,
     "jsx": "react-jsx",
-
+    "types": [
+      "node"
+    ],
     /* These compiler options are required by Convex */
     "target": "ESNext",
-    "lib": ["ES2021", "dom", "ES2023.Array"],
+    "lib": [
+      "ES2021",
+      "dom",
+      "ES2023.Array"
+    ],
     "forceConsistentCasingInFileNames": true,
     "allowSyntheticDefaultImports": true,
     "module": "ESNext",
@@ -20,6 +26,10 @@
     "isolatedModules": true,
     "noEmit": true
   },
-  "include": ["./**/*"],
-  "exclude": ["./_generated"]
+  "include": [
+    "./**/*"
+  ],
+  "exclude": [
+    "./_generated"
+  ]
 }

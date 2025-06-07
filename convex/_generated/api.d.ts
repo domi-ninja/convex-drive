@@ -30,6 +30,7 @@ import type * as otp_VerificationCodeEmail from "../otp/VerificationCodeEmail.js
 import type * as passwordReset_PasswordResetEmail from "../passwordReset/PasswordResetEmail.js";
 import type * as passwordReset_ResendOTPPasswordReset from "../passwordReset/ResendOTPPasswordReset.js";
 import type * as users from "../users.js";
+import type * as utils from "../utils.js";
 
 /**
  * A utility for referencing Convex functions in your app's API.
@@ -57,6 +58,7 @@ declare const fullApi: ApiFromModules<{
   "passwordReset/PasswordResetEmail": typeof passwordReset_PasswordResetEmail;
   "passwordReset/ResendOTPPasswordReset": typeof passwordReset_ResendOTPPasswordReset;
   users: typeof users;
+  utils: typeof utils;
 }>;
 export declare const api: FilterApi<
   typeof fullApi,

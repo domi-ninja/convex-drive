@@ -1,7 +1,6 @@
 import { cleanFileName } from "@/lib/file";
-import { getConvexSiteUrl } from "@/lib/utils";
 import { useAuthToken } from "@convex-dev/auth/react";
-import { useMutation, useQuery } from "convex/react";
+import { useAction, useMutation, useQuery } from "convex/react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { api } from "../../convex/_generated/api";
@@ -86,6 +85,7 @@ export function FileManageTable() {
     const [filesAndFolders, setFilesAndFolders] = useState<FileOrFolder[]>([]);
 
     const token = useAuthToken();
+    const getEnvironmentUrls = useAction(api.utils.getEnvironmentUrls);
 
     useEffect(() => {
         if (!files) return;
@@ -285,7 +285,8 @@ export function FileManageTable() {
 
         try {
             const selectedItems = filesAndFolders.filter(f => selectedFiles.has(f._id));
-            const convexSiteUrl = getConvexSiteUrl();
+            const urls = await getEnvironmentUrls({});
+            const convexSiteUrl = urls.CONVEX_SITE_URL;
 
             const headers: Record<string, string> = {
                 'Content-Type': 'application/json'
