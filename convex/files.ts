@@ -45,6 +45,11 @@ export const saveFile = mutation({
       throw new Error("User not authenticated");
     }
 
+    const folder = await ctx.db.get(args.folderId);
+    if (!folder || folder.userId !== userId) {
+      throw new Error("Folder not found or user not authorized");
+    }
+
     const existingFiles = await ctx.db
       .query("files")
       .withIndex("by_folderId", (q) => q.eq("folderId", args.folderId))
@@ -134,8 +139,15 @@ export const moveFile = mutation({
 export const getFileForDownload = query({
   args: { fileId: v.id("files") },
   handler: async (ctx, args): Promise<Doc<"files"> | null> => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
+      return null;
+    }
     const file = await ctx.db.get(args.fileId);
     if (!file) return null;
+    if (file.userId !== userId) {
+      return null;
+    }
     return file;
   },
 });
@@ -144,6 +156,14 @@ export const getFileForDownload = query({
 export const listFilesInFolder = query({
   args: { folderId: v.id("folders") },
   handler: async (ctx, args): Promise<Array<FileWithUrl>> => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
+      return [];
+    }
+    const folder = await ctx.db.get(args.folderId);
+    if (!folder || folder.userId !== userId) {
+      return [];
+    }
     const files = await ctx.db
       .query("files")
       .withIndex("by_folderId", (q) => q.eq("folderId", args.folderId))
