@@ -1,8 +1,12 @@
 {
-  "name": "test-example",
+  "name": "convex-drive",
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/domi-ninja/convex-drive"
+  },
   "scripts": {
     "dev": "npm-run-all --parallel dev:frontend dev:backend",
     "dev:frontend": "node convert-colors.js && vite --open --port 5173 --host 0.0.0.0",

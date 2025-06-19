@@ -6,3 +6,7 @@ interface ImportMetaEnv {
     // Add other environment variables you expect here
     // readonly VITE_SOME_OTHER_VAR: string;
 }
+
+interface ImportMeta {
+    readonly env: ImportMetaEnv;
+}

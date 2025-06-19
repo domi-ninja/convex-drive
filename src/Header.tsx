@@ -25,7 +25,7 @@ export default function Header() {
             {/* Main header row */}
             <div className="h-14 sm:h-16 flex justify-between items-center px-3 sm:px-4">
                 <a href="/" className="text-lg sm:text-xl font-semibold text-foreground hover:text-foreground/90 transition-colors flex-shrink-0">
-                    <span className="bg-background text-foreground">Zero Drive</span>
+                    <span className="bg-background text-foreground">Convex Drive</span>
                 </a>
                 <Authenticated>
                     {(isMainRoute && files && files.length > 10) && (
