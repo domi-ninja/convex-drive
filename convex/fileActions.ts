@@ -40,11 +40,11 @@ export const downloadFilesAsZipBytes = action({
         }
       }
 
-      // const folders = await ctx.runQuery(api.folders.listFoldersInFolder, { folderId });
+      const folders = await ctx.runQuery(api.folders.listFoldersInFolder, { folderId });
 
-      // for (const folder of folders) {
-      //   await zipRec(currentZip.folder(folder.name) as JSZip, folder._id);
-      // }
+      for (const folder of folders) {
+        await zipRec(currentZip.folder(folder.name) as JSZip, folder._id);
+      }
     }
 
     for (const fileOrFolder of filesOrFolders) {

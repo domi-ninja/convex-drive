@@ -283,6 +283,8 @@ export function FileManageTable() {
             return;
         }
 
+        toast.info("Preparing ZIP file...");
+
         try {
             const selectedItems = filesAndFolders.filter(f => selectedFiles.has(f._id));
             const urls = await getEnvironmentUrls({});
@@ -343,7 +345,6 @@ export function FileManageTable() {
             document.body.removeChild(link);
             URL.revokeObjectURL(url);
 
-            toast.success("Download started.");
             setSelectedFiles(new Set());
         } catch (error) {
             console.error("Failed to download files:", error);
