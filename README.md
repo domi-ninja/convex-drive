@@ -6,7 +6,7 @@ I built this in 4 days to test out [convex.dev](https://convex.dev). Try it out 
 - Folder support with a ton of features
 - Recursive ZIP download of everything
 
-`pnpm dev` to run locally
+`pnpm dev` to run in hybrid cloud+local dev mode. 
 
 ![Screenshot 2025-06-05 102150](https://github.com/user-attachments/assets/4454838f-b7a6-44d4-bb72-00752da5df2d)
 ![Screenshot 2025-06-05 102258](https://github.com/user-attachments/assets/d8cc4f59-d974-4e59-8964-2a770ceeadbc)
