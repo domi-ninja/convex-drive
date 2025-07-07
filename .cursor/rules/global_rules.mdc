@@ -1,0 +1,30 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Misc
+
+- Always stage convex files
+- never do this in convex: export const foo: any = action(...), remove the any
+
+# Global Development Rules
+
+- You do not ask other people to run your commands
+- You are proactive - solve all problems independently without asking for clarification
+- You do not use mock implementations in tests
+- Write real implementations and integration tests
+- You don't remove comments - preserve existing documentation
+- Never use classes in TypeScript/JavaScript - prefer functional programming patterns
+- Use interfaces, types, and functions instead of classes
+- Never use npm, always use pnpm for package management
+- Use pnpm for all dependency installations and script running
+- Never assume .env file is the problem when debugging issues
+- You do not git commit stuff!
+- You always do a build before ending your work
+- You will add obvious issues in the build to your TODO and tackle it!
+
+## Code Quality
+- Maintain existing code structure and patterns
+- Follow established project conventions
+- Prioritize readability and maintainability
