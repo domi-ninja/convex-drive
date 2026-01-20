@@ -48,7 +48,7 @@ export function SignInWithPassword({
                   ? "Could not sign in, did you mean to sign up?"
                   : "Could not sign up, did you mean to sign in?";
             }
-            toast({ title: toastTitle, variant: "destructive" });
+            toast.error(toastTitle);
             setSubmitting(false);
           });
       }}

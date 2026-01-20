@@ -14,7 +14,7 @@ export function FileUploadArea() {
         if (!currentFolderId) {
             toast.error("No folder selected");
             return;
-        };
+        }
 
         toast.info(`Uploading ${files.length} files`);
 
@@ -84,6 +84,15 @@ export function FileUploadArea() {
         [setIsDragging, currentFolderId]
     );
 
+    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const files = event.target.files;
+        if (files && files.length > 0) {
+            handleUploadFiles(files);
+        }
+        // Reset input so the same file can be selected again
+        event.target.value = "";
+    };
+
     return (
         <div
             className={`flex-1 w-full py-4 px-4 border-2 ${isDragging ? "border-primary bg-primary/10" :
@@ -100,18 +109,14 @@ export function FileUploadArea() {
                 </div>
             ) : (
                 <div className="flex justify-center flex-row items-center flex-wrap gap-4">
-                    <input
-                        type="file"
-                        multiple
-                        onChange={(e) => e.target.files && handleUploadFiles(e.target.files)}
-                        className="hidden"
-                        id="file-upload-input"
-                    />
-                    <label
-                        htmlFor="file-upload-input"
-                        className="p-4 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 cursor-pointer shadow-sm"
-                    >
+                    <label className="relative p-4 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 cursor-pointer shadow-sm">
                         Upload Files
+                        <input
+                            type="file"
+                            multiple
+                            onChange={handleFileChange}
+                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                        />
                     </label>
                     <span className={isDragging ? "text-primary" : "text-muted-foreground hidden sm:block"}>
                         Drop folders here to upload
@@ -120,4 +125,4 @@ export function FileUploadArea() {
             )}
         </div>
     );
-} 
+}

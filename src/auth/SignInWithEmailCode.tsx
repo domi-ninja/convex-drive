@@ -26,10 +26,7 @@ export function SignInWithEmailCode({
           .then(() => handleCodeSent(formData.get("email") as string))
           .catch((error: unknown) => {
             console.error(error);
-            toast({
-              title: "Could not send code",
-              variant: "destructive",
-            });
+            toast.error("Could not send code");
             setSubmitting(false);
           });
       }}

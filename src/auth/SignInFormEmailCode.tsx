@@ -37,10 +37,7 @@ export function SignInFormEmailCode() {
               setSubmitting(true);
               const formData = new FormData(event.currentTarget);
               signIn("resend-otp", formData).catch(() => {
-                toast({
-                  title: "Code could not be verified, try again",
-                  variant: "destructive",
-                });
+                toast.error("Code could not be verified, try again");
                 setSubmitting(false);
               });
             }}

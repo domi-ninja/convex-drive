@@ -58,10 +58,7 @@ function SignInWithMagicLink({
           .then(handleLinkSent)
           .catch((error: unknown) => {
             console.error(error);
-            toast({
-              title: "Could not send sign-in link",
-              variant: "destructive",
-            });
+            toast.error("Could not send sign-in link");
             setSubmitting(false);
           });
       }}
