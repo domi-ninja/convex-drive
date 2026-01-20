@@ -28,7 +28,7 @@ export const downloadFilesAsZipBytes = action({
 
       for (const file of files) {
         const fileDoc = await ctx.runQuery(api.folders.getFileForDownload, {
-          fileId: file._id
+          fileId: file._id as Id<"files">
         });
         if (fileDoc) {
           const blob = await ctx.storage.get(fileDoc.storageId);
@@ -43,7 +43,7 @@ export const downloadFilesAsZipBytes = action({
       const folders = await ctx.runQuery(api.folders.listFoldersInFolder, { folderId });
 
       for (const folder of folders) {
-        await zipRec(currentZip.folder(folder.name) as JSZip, folder._id);
+        await zipRec(currentZip.folder(folder.name) as JSZip, folder._id as Id<"folders">);
       }
     }
 

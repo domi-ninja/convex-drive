@@ -25,3 +25,11 @@ dist-ssr
 
 # Ignored for the template, you probably want to remove it:
 package-lock.json
+.claude
+.cursor
+.cursor/rules
+.cursorignore
+.opencodeignore
+AGENTS.md
+CLAUDE.md
+GEMINI.md

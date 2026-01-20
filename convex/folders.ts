@@ -315,12 +315,12 @@ export const getFileForDownload = query({
   handler: async (ctx, args): Promise<Doc<"files"> | null> => {
     const userId = await getAuthUserId(ctx);
     if (!userId) {
-      return null;
+      throw new Error("User not authenticated");
     }
     const file = await ctx.db.get(args.fileId);
     if (!file) return null;
     if (file.userId !== userId) {
-      return null;
+      throw new Error("User not owner of file");
     }
     return file;
   },
