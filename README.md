@@ -1,3 +1,7 @@
+<!-- moved-to-codeberg -->
+> This repository moved to [Codeberg](https://codeberg.org/domi-ninja/convex-drive).
+>
+> I moved off GitHub because it became unreliable after the Microsoft acquisition.
 # Convex Drive
   
 I built this in 4 days to test out [convex.dev](https://convex.dev). Try it out here: https://convex-drive.vercel.app/
