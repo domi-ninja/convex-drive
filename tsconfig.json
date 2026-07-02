@@ -25,7 +25,6 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
     /* Import paths */
-    "baseUrl": ".",
     "paths": {
       "@/*": [
         "./src/*"

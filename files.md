@@ -6,5 +6,16 @@
 - `scripts/refresh-convex-admin-key.sh` - Post-deploy hook that generates a Convex admin key from the current stack's backend container and writes it to `.env.local`.
 - `scripts/push-.env.local-to-convex.sh` - Post-deploy hook that pushes `.env.local` values into the self-hosted Convex deployment.
 - `scripts/generate-jwt.js` - Generates a JWT signing key and stores it in `.env.local`.
+- `convex/random.ts` - Shared helper for generating numeric verification tokens with Web Crypto.
+- `convex/otp/VerificationCodeEmail.tsx` - Sign-in verification email markup.
+- `convex/passwordReset/PasswordResetEmail.tsx` - Password reset verification email markup.
 - `Dockerfile` - Builds the Vite frontend and serves the static output with nginx.
 - `nginx.conf` - nginx config for serving the SPA and static assets.
+- `package.json` - npm package metadata, scripts, and direct dependency versions.
+- `pnpm-workspace.yaml` - pnpm workspace settings, build allowlist, and dependency overrides.
+- `postcss.config.js` - ESM PostCSS config for Tailwind and autoprefixer.
+- `postcss.config.cjs` - CommonJS PostCSS config for tools that load CJS config.
+- `tailwind.config.js` - Tailwind theme, content paths, and animation configuration.
+- `src/index.css` - Global Tailwind entrypoint and app theme variables.
+- `tsconfig.json` - Root TypeScript project config used by the lint script.
+- `eslint.config.js` - ESLint flat config for app and Convex TypeScript sources.

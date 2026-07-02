@@ -1,13 +1,13 @@
 import { Email } from "@convex-dev/auth/providers/Email";
-import { alphabet, generateRandomString } from "oslo/crypto";
 import { Resend as ResendAPI } from "resend";
+import { generateNumericToken } from "../random";
 import { PasswordResetEmail } from "./PasswordResetEmail";
 
 export const ResendOTPPasswordReset = Email({
   id: "resend-otp-password-reset",
   apiKey: process.env.AUTH_RESEND_KEY,
   async generateVerificationToken() {
-    return generateRandomString(8, alphabet("0-9"));
+    return generateNumericToken(8);
   },
   async sendVerificationRequest({
     identifier: email,

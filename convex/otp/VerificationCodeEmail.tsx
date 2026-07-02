@@ -1,13 +1,3 @@
-import {
-  Container,
-  Head,
-  Heading,
-  Html,
-  Section,
-  Tailwind,
-  Text,
-} from "@react-email/components";
-
 export function VerificationCodeEmail({
   code,
   expires,
@@ -15,28 +5,67 @@ export function VerificationCodeEmail({
   code: string;
   expires: Date;
 }) {
+  const hours = Math.floor((+expires - Date.now()) / (60 * 60 * 1000));
+
   return (
-    <Html>
-      <Tailwind>
-        <Head />
-        <Container className="container px-20 font-sans">
-          <Heading className="text-xl font-bold mb-4">
+    <html>
+      <head />
+      <body style={bodyStyle}>
+        <main style={containerStyle}>
+          <h1 style={headingStyle}>
             {/* TODO: Update with your app name */}
             Sign in to My App
-          </Heading>
-          <Text className="text-sm">
+          </h1>
+          <p style={textStyle}>
             Please enter the following code on the sign in page.
-          </Text>
-          <Section className="text-center">
-            <Text className="font-semibold">Verification code</Text>
-            <Text className="font-bold text-4xl">{code}</Text>
-            <Text>
-              (This code is valid for{" "}
-              {Math.floor((+expires - Date.now()) / (60 * 60 * 1000))} hours)
-            </Text>
-          </Section>
-        </Container>
-      </Tailwind>
-    </Html>
+          </p>
+          <section style={codeSectionStyle}>
+            <p style={labelStyle}>Verification code</p>
+            <p style={codeStyle}>{code}</p>
+            <p style={textStyle}>(This code is valid for {hours} hours)</p>
+          </section>
+        </main>
+      </body>
+    </html>
   );
 }
+
+const bodyStyle = {
+  fontFamily:
+    '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+  margin: "0",
+  padding: "0",
+};
+
+const containerStyle = {
+  margin: "0 auto",
+  maxWidth: "560px",
+  padding: "32px 80px",
+};
+
+const headingStyle = {
+  fontSize: "20px",
+  fontWeight: "700",
+  margin: "0 0 16px",
+};
+
+const textStyle = {
+  fontSize: "14px",
+  lineHeight: "20px",
+};
+
+const codeSectionStyle = {
+  textAlign: "center" as const,
+};
+
+const labelStyle = {
+  fontWeight: "600",
+};
+
+const codeStyle = {
+  fontSize: "36px",
+  fontWeight: "700",
+  letterSpacing: "4px",
+  lineHeight: "44px",
+  margin: "12px 0",
+};

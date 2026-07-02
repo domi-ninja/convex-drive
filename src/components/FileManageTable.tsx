@@ -89,7 +89,7 @@ export function FileManageTable() {
 
     useEffect(() => {
         if (!files) return;
-        let filesList: FileOrFolder[] = [];
+        const filesList: FileOrFolder[] = [];
         for (const file of files.files || []) {
             filesList.push({
                 type: file.type,

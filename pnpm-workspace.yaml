@@ -1,5 +1,10 @@
 allowBuilds:
   esbuild: true
+overrides:
+  yaml: ^2.8.3
+peerDependencyRules:
+  allowedVersions:
+    tailwindcss: 3.4.19
 onlyBuiltDependencies:
   - esbuild@0.25.6
   - esbuild@0.27.0

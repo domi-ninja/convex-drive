@@ -95,12 +95,28 @@ export function FileViewerModal({ viewingFiles, file, setFile, isOpen, onClose }
     isOpen: boolean;
     onClose: () => void;
 }) {
-    if (!isOpen || !file || file.type === "folder") return null;
-
     const handleBackdropClick = (e: React.MouseEvent) => {
         if (e.target === e.currentTarget) {
             onClose();
         }
+    };
+
+    const onNext = () => {
+        if (!file || viewingFiles.length === 0) {
+            return;
+        }
+        const currentIndex = viewingFiles.findIndex(f => f._id === file._id);
+        const nextIndex = (currentIndex + 1) % viewingFiles.length;
+        setFile(viewingFiles[nextIndex]);
+    };
+
+    const onPrevious = () => {
+        if (!file || viewingFiles.length === 0) {
+            return;
+        }
+        const currentIndex = viewingFiles.findIndex(f => f._id === file._id);
+        const previousIndex = (currentIndex - 1 + viewingFiles.length) % viewingFiles.length;
+        setFile(viewingFiles[previousIndex]);
     };
 
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -114,22 +130,14 @@ export function FileViewerModal({ viewingFiles, file, setFile, isOpen, onClose }
     };
 
     useEffect(() => {
+        if (!isOpen || !file || file.type === "folder") {
+            return;
+        }
         document.addEventListener('keydown', handleKeyDown);
         return () => document.removeEventListener('keydown', handleKeyDown);
-    }, [file, viewingFiles, setFile, onClose]);
+    }, [isOpen, file, viewingFiles, setFile, onClose]);
 
-    const onNext = () => {
-        const currentIndex = viewingFiles.findIndex(f => f._id === file._id);
-        const nextIndex = (currentIndex + 1) % viewingFiles.length;
-        setFile(viewingFiles[nextIndex]);
-    };
-
-    const onPrevious = () => {
-        const currentIndex = viewingFiles.findIndex(f => f._id === file._id);
-        const previousIndex = (currentIndex - 1 + viewingFiles.length) % viewingFiles.length;
-        setFile(viewingFiles[previousIndex]);
-    };
-
+    if (!isOpen || !file || file.type === "folder") return null;
 
     return (
         <div

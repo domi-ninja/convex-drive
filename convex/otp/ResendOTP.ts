@@ -1,6 +1,6 @@
 import { Email } from "@convex-dev/auth/providers/Email";
-import { alphabet, generateRandomString } from "oslo/crypto";
 import { Resend as ResendAPI } from "resend";
+import { generateNumericToken } from "../random";
 import { VerificationCodeEmail } from "./VerificationCodeEmail";
 
 export const ResendOTP = Email({
@@ -8,7 +8,7 @@ export const ResendOTP = Email({
   apiKey: process.env.AUTH_RESEND_KEY,
   maxAge: 60 * 20,
   async generateVerificationToken() {
-    return generateRandomString(8, alphabet("0-9"));
+    return generateNumericToken(8);
   },
   async sendVerificationRequest({
     identifier: email,
