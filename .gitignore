@@ -34,3 +34,5 @@ AGENTS.md
 CLAUDE.md
 GEMINI.md
 .vercel
+.deploy/releases
+.deploy
