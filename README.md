@@ -15,7 +15,7 @@ pp deploy
 
 The bootstrap recreates `.env.local` with fresh instance, Postgres, MinIO, and JWT credentials. For an existing deployment, it preserves data-bearing names and updates the running Postgres role before replacing the local password. It never prints generated secrets.
 
-After the backend becomes healthy, deploy hooks create the MinIO buckets, regenerate `CONVEX_SELF_HOSTED_ADMIN_KEY`, copy only `SITE_URL`, `JWT_PRIVATE_KEY`, and `JWKS` from `.env.local` into the Convex function environment, and sync the functions.
+After the backend becomes healthy, deploy hooks create the MinIO buckets, regenerate `CONVEX_SELF_HOSTED_ADMIN_KEY`, copy only `SITE_URL`, `JWT_PRIVATE_KEY`, and `JWKS` from `.env.local` into the Convex function environment, and sync the functions. Function sync uses a disposable CLI credential file and removes the CLI-generated `VITE_CONVEX_SITE_URL` compatibility output afterward.
 
 `.env.local.example` documents keys only. Do not put credentials in it. The Convex dashboard has no public Caddy route by default.
 

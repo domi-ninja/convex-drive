@@ -196,7 +196,7 @@ hooks:
           - JWT_PRIVATE_KEY
           - JWKS
     - name: sync convex functions
-      run: ["npx", "convex", "dev", "--once", "--env-file", ".env.local"]
+      run: ["bash", "scripts/sync-convex-functions.sh"]
       env:
         source: .env.local
         required:

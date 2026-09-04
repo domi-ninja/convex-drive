@@ -52,6 +52,18 @@ if [[ -f .env.local ]]; then
   for name in "${required_env[@]}"; do
     grep -q "^${name}=" .env.local || fail ".env.local is missing $name"
   done
+
+  allowed_env=("${required_env[@]}" CONVEX_SELF_HOSTED_ADMIN_KEY)
+  while IFS= read -r name; do
+    allowed=false
+    for expected in "${allowed_env[@]}"; do
+      if [[ "$name" == "$expected" ]]; then
+        allowed=true
+        break
+      fi
+    done
+    [[ "$allowed" == true ]] || fail ".env.local contains unowned key $name"
+  done < <(sed -n 's/^\([A-Za-z_][A-Za-z0-9_]*\)=.*/\1/p' .env.local)
 fi
 
 remote_urls="$(git remote -v 2>/dev/null | awk '{print $2}' | sort -u || true)"
