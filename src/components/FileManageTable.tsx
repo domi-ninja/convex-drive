@@ -1,6 +1,6 @@
 import { cleanFileName } from "@/lib/file";
 import { useAuthToken } from "@convex-dev/auth/react";
-import { useAction, useMutation, useQuery } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { api } from "../../convex/_generated/api";
@@ -85,7 +85,6 @@ export function FileManageTable() {
     const [filesAndFolders, setFilesAndFolders] = useState<FileOrFolder[]>([]);
 
     const token = useAuthToken();
-    const getEnvironmentUrls = useAction(api.utils.getEnvironmentUrls);
 
     useEffect(() => {
         if (!files) return;
@@ -287,8 +286,7 @@ export function FileManageTable() {
 
         try {
             const selectedItems = filesAndFolders.filter(f => selectedFiles.has(f._id));
-            const urls = await getEnvironmentUrls({});
-            const convexSiteUrl = urls.CONVEX_SITE_URL;
+            const convexUrl = import.meta.env.VITE_CONVEX_URL.replace(/\/$/, "");
 
             const headers: Record<string, string> = {
                 'Content-Type': 'application/json'
@@ -299,7 +297,7 @@ export function FileManageTable() {
                 headers['Authorization'] = `Bearer ${token}`;
             }
 
-            const response = await fetch(`${convexSiteUrl}/download-zip`, {
+            const response = await fetch(`${convexUrl}/download-zip`, {
                 method: 'POST',
                 headers,
                 body: JSON.stringify({

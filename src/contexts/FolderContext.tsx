@@ -1,8 +1,11 @@
 import { useMutation, useQuery } from "convex/react";
+import type { FunctionReturnType } from "convex/server";
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { api } from "../../convex/_generated/api";
 import { Id } from "../../convex/_generated/dataModel";
+
+type FolderContents = FunctionReturnType<typeof api.folders.getFilesAndFoldersRec>;
 
 interface FolderContextType {
     rootFolderId: Id<"folders"> | null;
@@ -12,7 +15,7 @@ interface FolderContextType {
     isUploading: boolean;
     setUploadingCount: React.Dispatch<React.SetStateAction<number>>;
     setIsUploading: React.Dispatch<React.SetStateAction<boolean>>;
-    files: any;
+    files: FolderContents | undefined;
 }
 
 const FolderContext = createContext<FolderContextType | undefined>(undefined);
@@ -27,7 +30,7 @@ export function FolderProvider({ children }: { children: React.ReactNode }) {
     const [isUploading, setIsUploading] = useState(false);
     const [uploadingCount, setUploadingCount] = useState(0);
 
-    const user = useQuery(api.auth.loggedInUser);
+    const user = useQuery(api.users.viewer);
 
     const folderData = useQuery(api.folders.getFilesAndFoldersRec,
         currentFolderId ? { folderId: currentFolderId } : "skip"
@@ -128,4 +131,4 @@ export function useFolderContext() {
         throw new Error("useFolderContext must be used within a FolderProvider");
     }
     return context;
-} 
+}

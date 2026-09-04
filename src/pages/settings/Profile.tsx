@@ -2,7 +2,7 @@ import { Authenticated, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 
 export function Profile() {
-    const loggedInUser = useQuery(api.auth.loggedInUser);
+    const loggedInUser = useQuery(api.users.viewer);
 
     if (loggedInUser === undefined) {
         return (
@@ -49,20 +49,8 @@ export function Profile() {
                             </div>
                         </div>
                     </div>
-
-                    <div className="mt-8 pt-6 border-t border-gray-200">
-                        <h2 className="text-lg font-semibold text-gray-900 mb-4">Account Actions</h2>
-                        <div className="space-y-3">
-                            <button className="w-full sm:w-auto px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
-                                Update Profile
-                            </button>
-                            <button className="w-full sm:w-auto px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors ml-0 sm:ml-3">
-                                Change Password
-                            </button>
-                        </div>
-                    </div>
                 </div>
             </div>
         </Authenticated>
     );
-} 
+}

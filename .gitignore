@@ -30,7 +30,6 @@ package-lock.json
 .cursor/rules
 .cursorignore
 .opencodeignore
-AGENTS.md
 CLAUDE.md
 GEMINI.md
 .deploy/releases

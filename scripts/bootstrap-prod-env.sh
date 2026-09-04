@@ -2,71 +2,120 @@
 
 set -euo pipefail
 
-ENV_FILE="${1:-.env.local}"
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+SITE_HOST="${1:-}"
+ENV_FILE="${2:-$ROOT_DIR/.env.local}"
 
-touch "$ENV_FILE"
-chmod 600 "$ENV_FILE"
+if [[ -z "$SITE_HOST" ]]; then
+  echo "Usage: scripts/bootstrap-prod-env.sh <site-hostname> [env-file]" >&2
+  exit 1
+fi
 
-random_hex() {
-  openssl rand -hex 32
-}
+if [[ ! "$SITE_HOST" =~ ^[a-z0-9]([a-z0-9.-]*[a-z0-9])?$ ]]; then
+  echo "Error: invalid site hostname: $SITE_HOST" >&2
+  exit 1
+fi
 
-random_b64() {
-  openssl rand -base64 36 | tr -d '\n'
-}
+PROJECT="$({
+  awk '
+    $1 == "project:" { in_project=1; next }
+    in_project && $1 == "name:" {
+      value=$2
+      gsub(/^["'\'']|["'\'']$/, "", value)
+      print value
+      exit
+    }
+    in_project && $1 !~ /^ / && $1 != "" { in_project=0 }
+  ' "$ROOT_DIR/deploy.yml"
+})"
 
-get_env() {
+if [[ -z "$PROJECT" || ! "$PROJECT" =~ ^[a-z0-9][a-z0-9-]*$ ]]; then
+  echo "Error: deploy.yml has no valid literal project.name" >&2
+  exit 1
+fi
+
+API_HOST="api.$SITE_HOST"
+DEFAULT_DB_NAME="${PROJECT//-/_}"
+
+get_existing_nonsecret() {
   local key="$1"
-  sed -n "s/^${key}=//p" "$ENV_FILE" | tail -n 1
-}
+  local fallback="$2"
+  local value=""
 
-set_env() {
-  local key="$1"
-  local value="$2"
-  if grep -q "^${key}=" "$ENV_FILE"; then
-    tmp="$(mktemp)"
-    awk -v key="$key" -v value="$value" 'BEGIN { done=0 } $0 ~ "^" key "=" { if (!done) { print key "=" value; done=1 } next } { print } END { if (!done) print key "=" value }' "$ENV_FILE" > "$tmp"
-    mv "$tmp" "$ENV_FILE"
-  else
-    printf '%s=%s\n' "$key" "$value" >> "$ENV_FILE"
+  if [[ -f "$ENV_FILE" ]]; then
+    value="$(sed -n "s/^${key}=//p" "$ENV_FILE" | tail -n 1)"
   fi
+
+  printf '%s' "${value:-$fallback}"
 }
 
-set_if_missing() {
-  local key="$1"
-  local value="$2"
-  if [[ -z "$(get_env "$key")" ]]; then
-    set_env "$key" "$value"
+# Preserve names that point at existing data. Fresh copies without an env file
+# receive names derived from the literal pp project slug.
+INSTANCE_NAME="$(get_existing_nonsecret INSTANCE_NAME "$API_HOST")"
+POSTGRES_DB="$(get_existing_nonsecret POSTGRES_DB "$DEFAULT_DB_NAME")"
+POSTGRES_USER="$(get_existing_nonsecret POSTGRES_USER "$DEFAULT_DB_NAME")"
+S3_STORAGE_EXPORTS_BUCKET="$(get_existing_nonsecret S3_STORAGE_EXPORTS_BUCKET "$PROJECT-convex-exports")"
+S3_STORAGE_SNAPSHOT_IMPORTS_BUCKET="$(get_existing_nonsecret S3_STORAGE_SNAPSHOT_IMPORTS_BUCKET "$PROJECT-convex-snapshot-imports")"
+S3_STORAGE_MODULES_BUCKET="$(get_existing_nonsecret S3_STORAGE_MODULES_BUCKET "$PROJECT-convex-modules")"
+S3_STORAGE_FILES_BUCKET="$(get_existing_nonsecret S3_STORAGE_FILES_BUCKET "$PROJECT-convex-files")"
+S3_STORAGE_SEARCH_BUCKET="$(get_existing_nonsecret S3_STORAGE_SEARCH_BUCKET "$PROJECT-convex-search")"
+
+umask 077
+ENV_DIR="$(dirname "$ENV_FILE")"
+mkdir -p "$ENV_DIR"
+TEMP_FILE="$(mktemp "$ENV_DIR/.env.local.XXXXXX")"
+trap 'rm -f "$TEMP_FILE"' EXIT
+
+INSTANCE_SECRET="$(openssl rand -hex 32)"
+POSTGRES_PASSWORD="$(openssl rand -hex 32)"
+MINIO_ROOT_USER="$(openssl rand -hex 12)"
+MINIO_ROOT_PASSWORD="$(openssl rand -hex 32)"
+
+{
+  printf 'VITE_CONVEX_URL=https://%s\n' "$API_HOST"
+  printf 'SITE_URL=https://%s\n' "$SITE_HOST"
+  printf 'CONVEX_SELF_HOSTED_URL=https://%s\n' "$API_HOST"
+  printf 'INSTANCE_NAME=%s\n' "$INSTANCE_NAME"
+  printf 'INSTANCE_SECRET=%s\n' "$INSTANCE_SECRET"
+  printf 'POSTGRES_DB=%s\n' "$POSTGRES_DB"
+  printf 'POSTGRES_USER=%s\n' "$POSTGRES_USER"
+  printf 'POSTGRES_PASSWORD=%s\n' "$POSTGRES_PASSWORD"
+  printf 'POSTGRES_URL=postgres://%s:%s@postgres:5432?sslmode=disable\n' "$POSTGRES_USER" "$POSTGRES_PASSWORD"
+  printf 'MINIO_ROOT_USER=%s\n' "$MINIO_ROOT_USER"
+  printf 'MINIO_ROOT_PASSWORD=%s\n' "$MINIO_ROOT_PASSWORD"
+  printf 'S3_STORAGE_EXPORTS_BUCKET=%s\n' "$S3_STORAGE_EXPORTS_BUCKET"
+  printf 'S3_STORAGE_SNAPSHOT_IMPORTS_BUCKET=%s\n' "$S3_STORAGE_SNAPSHOT_IMPORTS_BUCKET"
+  printf 'S3_STORAGE_MODULES_BUCKET=%s\n' "$S3_STORAGE_MODULES_BUCKET"
+  printf 'S3_STORAGE_FILES_BUCKET=%s\n' "$S3_STORAGE_FILES_BUCKET"
+  printf 'S3_STORAGE_SEARCH_BUCKET=%s\n' "$S3_STORAGE_SEARCH_BUCKET"
+  node "$ROOT_DIR/scripts/generate-jwt.js"
+} > "$TEMP_FILE"
+
+STATE_PROJECT=""
+if [[ -f "$ROOT_DIR/.deploy/state.json" ]]; then
+  STATE_PROJECT="$(sed -n 's/^[[:space:]]*"project":[[:space:]]*"\([^"]*\)".*/\1/p' "$ROOT_DIR/.deploy/state.json" | head -n 1)"
+fi
+
+if [[ -f "$ENV_FILE" && "$STATE_PROJECT" == "$PROJECT" ]]; then
+  SSH_TARGET="$(awk '$1 == "ssh:" { print $2; exit }' "$ROOT_DIR/deploy.yml")"
+  if [[ -z "$SSH_TARGET" ]]; then
+    echo "Error: could not determine the deploy SSH target" >&2
+    exit 1
   fi
-}
+  if [[ ! "$POSTGRES_USER" =~ ^[A-Za-z0-9_.-]+$ || ! "$POSTGRES_DB" =~ ^[A-Za-z0-9_.-]+$ ]]; then
+    echo "Error: existing Postgres identifiers contain unsupported characters" >&2
+    exit 1
+  fi
 
-set_if_missing VITE_SITE_URL "https://humanist.design"
-set_if_missing VITE_CONVEX_URL "https://api.humanist.design"
-set_if_missing VITE_CONVEX_SITE_URL "https://api.humanist.design"
-set_if_missing SITE_URL "https://humanist.design"
-set_if_missing CONVEX_SELF_HOSTED_URL "https://api.humanist.design"
+  remote_command="container=\$(docker ps --filter label=pp.project=$(printf '%q' "$PROJECT") --filter label=pp.service=postgres --format '{{.Names}}' | head -n 1); test -n \"\$container\" && docker exec -i \"\$container\" psql -v ON_ERROR_STOP=1 -U $(printf '%q' "$POSTGRES_USER") -d $(printf '%q' "$POSTGRES_DB")"
+  printf 'ALTER ROLE "%s" WITH PASSWORD '\''%s'\'';\n' "$POSTGRES_USER" "$POSTGRES_PASSWORD" | ssh "$SSH_TARGET" "$remote_command" >/dev/null
+  echo "Rotated the live Postgres role before replacing local credentials."
+fi
 
-set_if_missing INSTANCE_NAME "api.humanist.design"
-set_if_missing INSTANCE_SECRET "$(random_hex)"
+chmod 600 "$TEMP_FILE"
+mv "$TEMP_FILE" "$ENV_FILE"
+trap - EXIT
 
-set_if_missing POSTGRES_DB "$(get_env INSTANCE_NAME)"
-set_if_missing POSTGRES_USER "humanist"
-set_if_missing POSTGRES_PASSWORD "$(random_b64)"
-set_env POSTGRES_URL "postgres://$(get_env POSTGRES_USER):$(get_env POSTGRES_PASSWORD)@postgres:5432?sslmode=disable"
-set_env DATABASE_URL "postgres://$(get_env POSTGRES_USER):$(get_env POSTGRES_PASSWORD)@postgres:5432/$(get_env POSTGRES_DB)?sslmode=disable"
-
-set_if_missing MINIO_ROOT_USER "humanist-minio"
-set_if_missing MINIO_ROOT_PASSWORD "$(random_b64)"
-set_env AWS_ACCESS_KEY_ID "$(get_env MINIO_ROOT_USER)"
-set_env AWS_SECRET_ACCESS_KEY "$(get_env MINIO_ROOT_PASSWORD)"
-
-set_if_missing S3_STORAGE_EXPORTS_BUCKET "humanist-convex-exports"
-set_if_missing S3_STORAGE_SNAPSHOT_IMPORTS_BUCKET "humanist-convex-snapshot-imports"
-set_if_missing S3_STORAGE_MODULES_BUCKET "humanist-convex-modules"
-set_if_missing S3_STORAGE_FILES_BUCKET "humanist-convex-files"
-set_if_missing S3_STORAGE_SEARCH_BUCKET "humanist-convex-search"
-set_if_missing AWS_S3_DISABLE_SSE "true"
-
-echo "Wrote production deploy values to $ENV_FILE"
-echo "CONVEX_SELF_HOSTED_ADMIN_KEY is intentionally not generated here."
-echo "It is generated from the running Convex backend by scripts/refresh-convex-admin-key.sh."
+echo "Rotated production credentials in $ENV_FILE"
+echo "Preserved existing data-bearing names when present."
+echo "The Convex admin key will be generated from the healthy backend during deploy."

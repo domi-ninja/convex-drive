@@ -1,10 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuthActions } from "@convex-dev/auth/react";
-import { ConvexError } from "convex/values";
 import { useState } from "react";
 import { toast } from "sonner";
-import { INVALID_PASSWORD } from "../../convex/errors.js";
 
 export function SignInWithPassword({
   provider,
@@ -35,19 +33,10 @@ export function SignInWithPassword({
           })
           .catch((error: unknown) => {
             console.error(error);
-            let toastTitle: string;
-            if (
-              error instanceof ConvexError &&
-              error.data === INVALID_PASSWORD
-            ) {
-              toastTitle =
-                "Invalid password - check the requirements and try again.";
-            } else {
-              toastTitle =
-                flow === "signIn"
-                  ? "Could not sign in, did you mean to sign up?"
-                  : "Could not sign up, did you mean to sign in?";
-            }
+            const toastTitle =
+              flow === "signIn"
+                ? "Could not sign in, did you mean to sign up?"
+                : "Could not sign up, did you mean to sign in?";
             toast.error(toastTitle);
             setSubmitting(false);
           });

@@ -1,5 +1,4 @@
 import { SignInWithPassword } from "@/auth/SignInWithPassword";
-import { Toaster } from "sonner";
 
 export function SignInFormPassword() {
   return (
@@ -8,7 +7,6 @@ export function SignInFormPassword() {
         Sign in or create an account
       </h2>
       <SignInWithPassword />
-      <Toaster />
     </div>
   );
 }

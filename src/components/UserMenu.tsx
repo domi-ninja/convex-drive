@@ -15,7 +15,7 @@ import { Link } from "react-router-dom";
 import { api } from "../../convex/_generated/api";
 
 export function UserMenu() {
-  const loggedInUser = useQuery(api.auth.loggedInUser);
+  const loggedInUser = useQuery(api.users.viewer);
   return (
     <div className="flex items-center gap-2 text-sm font-medium">
       <DropdownMenu>

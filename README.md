@@ -1,15 +1,28 @@
-# Convex Drive
-  
-I built this in 4 days to test out [convex.dev](https://convex.dev). Try it out here: https://drive2.humanist.design/
+# Drive 2
 
-Features:
+A self-hosted file manager backed by Convex, Postgres, and MinIO.
 
-- Drag & Drop upload
-- Folder support with a ton of features
-- Recursive ZIP download of everything
+## Copy and deploy
 
-![Screenshot 2025-06-05 102150](https://github.com/user-attachments/assets/4454838f-b7a6-44d4-bb72-00752da5df2d)
-![Screenshot 2025-06-05 102258](https://github.com/user-attachments/assets/d8cc4f59-d974-4e59-8964-2a770ceeadbc)
-![Screenshot 2025-06-05 102213](https://github.com/user-attachments/assets/81a8e60f-425e-4c1a-b84e-41370a8235ed)
+A new copy needs an app name, literal `pp` project slug, site hostname, deploy SSH target, and new Git remotes. Replace those repository identifiers first; API URLs are derived as `api.<site-hostname>`. Do not copy `.deploy/state.json`, `.env.local`, or editor-specific ignored state.
 
-Do not use this for anything serious without auditing the code first, please. For obvious reasons. :)
+```sh
+pnpm install
+pnpm run audit:copy
+scripts/bootstrap-prod-env.sh drive2.humanist.design
+pp deploy
+```
+
+The bootstrap recreates `.env.local` with fresh instance, Postgres, MinIO, and JWT credentials. For an existing deployment, it preserves data-bearing names and updates the running Postgres role before replacing the local password. It never prints generated secrets.
+
+After the backend becomes healthy, deploy hooks create the MinIO buckets, regenerate `CONVEX_SELF_HOSTED_ADMIN_KEY`, copy only `SITE_URL`, `JWT_PRIVATE_KEY`, and `JWKS` from `.env.local` into the Convex function environment, and sync the functions.
+
+`.env.local.example` documents keys only. Do not put credentials in it. The Convex dashboard has no public Caddy route by default.
+
+## Development
+
+```sh
+pnpm dev
+pnpm lint
+pnpm build
+```

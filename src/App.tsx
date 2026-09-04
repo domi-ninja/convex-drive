@@ -6,12 +6,9 @@ import { SignInFormPassword } from "./auth/SignInFormPassword";
 import { FolderProvider } from "./contexts/FolderContext";
 import Header from "./Header";
 import { Home } from "./pages/Home";
-import { DesktopClientManager } from "./pages/settings/DesktopClientMgr";
 import { Profile } from "./pages/settings/Profile";
 
 export default function App() {
-  // const user = useQuery(api.users.viewer);
-
   return (
     <ThemeProvider
       attribute="class"
@@ -35,7 +32,6 @@ export default function App() {
                   <Route path="/folder" element={<Home />} />
                   <Route path="/folder/:path/*" element={<Home />} />
                   <Route path="/settings/profile" element={<Profile />} />
-                  <Route path="/settings/clients" element={<DesktopClientManager />} />
                 </Routes>
               </Authenticated>
             </main>
