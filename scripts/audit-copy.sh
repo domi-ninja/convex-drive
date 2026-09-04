@@ -53,7 +53,7 @@ if [[ -f .env.local ]]; then
     grep -q "^${name}=" .env.local || fail ".env.local is missing $name"
   done
 
-  allowed_env=("${required_env[@]}" CONVEX_SELF_HOSTED_ADMIN_KEY)
+  allowed_env=("${required_env[@]}" CONVEX_SELF_HOSTED_ADMIN_KEY VITE_CONVEX_SITE_URL)
   while IFS= read -r name; do
     allowed=false
     for expected in "${allowed_env[@]}"; do

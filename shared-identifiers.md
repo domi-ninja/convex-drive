@@ -42,7 +42,7 @@ The push script must never upload the first class. Standard password auth needs 
 Remove these redundant inputs:
 
 - `VITE_SITE_URL`
-- `VITE_CONVEX_SITE_URL`
+- `VITE_CONVEX_SITE_URL` as a human input. Convex CLI may recreate it as derived compatibility output.
 - `DATABASE_URL`
 - `AWS_ACCESS_KEY_ID`
 - `AWS_SECRET_ACCESS_KEY`

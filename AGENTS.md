@@ -16,7 +16,7 @@ This repository is self-hosted with `pp`, Docker, Caddy, and self-hosted Convex.
 - `scripts/bootstrap-prod-env.sh <site-hostname>` rotates all generated credentials. On an existing deployed stack, it updates the live Postgres role before replacing the local password and preserves names tied to existing data.
 - `CONVEX_SELF_HOSTED_ADMIN_KEY` cannot be bootstrapped locally. `scripts/refresh-convex-admin-key.sh` writes it after the backend is healthy.
 - Convex function variables are not automatically shared with the backend. `scripts/push-.env.local-to-convex.sh` must push the allowlisted values from `.env.local`: `SITE_URL`, `JWT_PRIVATE_KEY`, and `JWKS`.
-- `scripts/sync-convex-functions.sh` gives the Convex CLI a disposable credential file, then removes the CLI-generated `VITE_CONVEX_SITE_URL` compatibility output from `.env.local`.
+- Convex CLI may add `VITE_CONVEX_SITE_URL` to `.env.local`. It is derived from the API URL and is not a human-configured input.
 - Never expand that allowlist to include Postgres, MinIO, S3, instance, or Convex admin credentials.
 
 ## Production sequence
@@ -24,7 +24,7 @@ This repository is self-hosted with `pp`, Docker, Caddy, and self-hosted Convex.
 1. Run `pnpm run audit:copy`.
 2. Run `scripts/bootstrap-prod-env.sh <site-hostname>` to rotate credentials.
 3. Run `pp deploy`.
-4. Let the deploy hooks create buckets, refresh the Convex admin key, push the allowlisted function environment, and sync Convex functions through the disposable CLI environment.
+4. Let the deploy hooks create buckets, refresh the Convex admin key, push the allowlisted function environment, and sync Convex functions.
 5. Verify the frontend and `https://api.<site-hostname>/version`.
 
 Do not delete deployment volumes or rename existing database/bucket identifiers as part of credential rotation.

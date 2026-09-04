@@ -15,7 +15,6 @@
 - `scripts/ensure-minio-buckets.sh` - Idempotent post-deploy bucket creation using credentials read inside the remote MinIO container.
 - `scripts/refresh-convex-admin-key.sh` - Generates the current backend's admin key and writes it to `.env.local`.
 - `scripts/push-.env.local-to-convex.sh` - Pushes only `SITE_URL`, `JWT_PRIVATE_KEY`, and `JWKS` into Convex function storage.
-- `scripts/sync-convex-functions.sh` - Syncs source with disposable CLI credentials and removes Convex's generated compatibility key afterward.
 
 ## Build and tooling
 
