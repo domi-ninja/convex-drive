@@ -1,7 +1,7 @@
 version: 1
 
 project:
-  name: drive-humanist-design
+  name: drive2-humanist-design
   environment: prod
 
 env:
@@ -25,7 +25,7 @@ env:
     - AWS_S3_DISABLE_SSE
     - S3_STORAGE_EXPORTS_BUCKET
     - S3_STORAGE_SNAPSHOT_IMPORTS_BUCKET
-    - S3_STORAGE_MODULES_BUCKET
+    - S3_STORAGE_MODULES_BUCKETonly
     - S3_STORAGE_FILES_BUCKET
     - S3_STORAGE_SEARCH_BUCKET
 
@@ -35,7 +35,7 @@ builds:
     dockerfile: Dockerfile
     target: runtime
     tags:
-      - drive-humanist-design-web:${release}
+      - drive2-humanist-design-web:${release}
     args:
       VITE_SITE_URL: ${env.VITE_SITE_URL}
       VITE_CONVEX_URL: ${env.VITE_CONVEX_URL}
@@ -63,7 +63,7 @@ services:
       POSTGRES_USER: ${env.POSTGRES_USER}
       POSTGRES_PASSWORD: ${env.POSTGRES_PASSWORD}
     volumes:
-      - source: /data/pp/drive-humanist-design/postgres
+      - source: /data/pp/drive2-humanist-design/postgres
         target: /var/lib/postgresql/data
         type: bind
     health:
@@ -86,7 +86,7 @@ services:
       MINIO_ROOT_USER: ${env.MINIO_ROOT_USER}
       MINIO_ROOT_PASSWORD: ${env.MINIO_ROOT_PASSWORD}
     volumes:
-      - source: /data/pp/drive-humanist-design/s3
+      - source: /data/pp/drive2-humanist-design/s3
         target: /data
         type: bind
 
@@ -113,10 +113,10 @@ services:
     environment:
       INSTANCE_NAME: ${env.INSTANCE_NAME}
       INSTANCE_SECRET: ${env.INSTANCE_SECRET}
-      CONVEX_CLOUD_ORIGIN: https://api.drive.humanist.design
-      NEXT_PUBLIC_DEPLOYMENT_URL: https://api.drive.humanist.design
-      CONVEX_SITE_ORIGIN: https://api.drive.humanist.design
-      SITE_URL: https://drive.humanist.design
+      CONVEX_CLOUD_ORIGIN: https://api.drive2.humanist.design
+      NEXT_PUBLIC_DEPLOYMENT_URL: https://api.drive2.humanist.design
+      CONVEX_SITE_ORIGIN: https://api.drive2.humanist.design
+      SITE_URL: https://drive2.humanist.design
       POSTGRES_URL: ${env.POSTGRES_URL}
       DATABASE_URL: ${env.DATABASE_URL}
       DO_NOT_REQUIRE_SSL: "1"
@@ -148,9 +148,9 @@ services:
     hosts: [p3]
     environment:
       PORT: "3211"
-      CONVEX_CLOUD_ORIGIN: https://api.drive.humanist.design
-      NEXT_PUBLIC_DEPLOYMENT_URL: https://api.drive.humanist.design
-      CONVEX_SITE_ORIGIN: https://api.drive.humanist.design
+      CONVEX_CLOUD_ORIGIN: https://api.drive2.humanist.design
+      NEXT_PUBLIC_DEPLOYMENT_URL: https://api.drive2.humanist.design
+      CONVEX_SITE_ORIGIN: https://api.drive2.humanist.design
     ports:
       - published: auto
         target: 3211
@@ -164,7 +164,7 @@ services:
       timeout_seconds: 90
 
   web:
-    image: drive-humanist-design-web:${release}
+    image: drive2-humanist-design-web:${release}
     build: web
     phase: frontend
     hosts: [p3]
@@ -178,7 +178,7 @@ services:
 route_files:
   - source: deploy/caddy/humanist.caddy.tmpl
     host: p3
-    dest_name: drive-humanist-design.caddy
+    dest_name: drive2-humanist-design.caddy
 
 hooks:
   after_backend_healthy:
@@ -217,8 +217,8 @@ hooks:
 checks:
   smoke:
     - name: frontend
-      url: https://drive.humanist.design/
+      url: https://drive2.humanist.design/
       expect_status: 200
     - name: convex version
-      url: https://api.drive.humanist.design/version
+      url: https://api.drive2.humanist.design/version
       expect_status: 200

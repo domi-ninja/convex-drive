@@ -1,6 +1,6 @@
 # Convex Drive
   
-I built this in 4 days to test out [convex.dev](https://convex.dev). Try it out here: https://convex-drive.vercel.app/
+I built this in 4 days to test out [convex.dev](https://convex.dev). Try it out here: https://drive2.humanist.design/
 
 Features:
 
@@ -13,4 +13,3 @@ Features:
 ![Screenshot 2025-06-05 102213](https://github.com/user-attachments/assets/81a8e60f-425e-4c1a-b84e-41370a8235ed)
 
 Do not use this for anything serious without auditing the code first, please. For obvious reasons. :)
-
