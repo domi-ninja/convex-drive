@@ -80,7 +80,9 @@ export function audit({ root = process.cwd(), envFile = ".env.local", configurat
   if (!configurationOnly) {
     const remotes = execFileSync("git", ["remote", "-v"], { cwd: root, encoding: "utf8" });
     if (!remotes.trim()) errors.push("Configure the copied repository's Git remote");
-    if (/convex-drive|image-zero|drive\.humanist\.design/.test(remotes)) errors.push("Git remotes still point at a source repository; supply the new repository URL");
+    const expectedRemote = pkg.repository?.url;
+    const urls = remotes.trim().split("\n").filter(Boolean).map(line => line.split(/\s+/)[1]);
+    if (!expectedRemote || urls.some(url => url !== expectedRemote)) errors.push("Git remotes must match the operator-selected repository.url in package.json");
   }
   return errors;
 }

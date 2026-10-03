@@ -1,6 +1,10 @@
 {
   "name": "drive2-humanist-design",
   "private": true,
+  "repository": {
+    "type": "git",
+    "url": "ssh://git@git.domi.ninja:2222/domi-ninja/convex-drive.git"
+  },
   "version": "0.0.0",
   "type": "module",
   "scripts": {

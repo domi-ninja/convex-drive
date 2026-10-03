@@ -7,7 +7,7 @@ This repository is self-hosted with `pp`, Docker, Caddy, and self-hosted Convex.
 - `deploy.yml` owns the literal `pp` project slug. `pp` does not currently interpolate an environment variable in `project.name`.
 - The site hostname is the human input. The API hostname is `api.<site-hostname>`.
 - The dashboard stays private unless the operator explicitly requests a protected public route.
-- A copied repository needs new Git remotes. Never infer or create those URLs.
+- Domi explicitly selected `ssh://git@git.domi.ninja:2222/domi-ninja/convex-drive.git` for this checkout. `package.json` records that choice. Independent copies must update their repository URL and Git remotes together; never invent destinations.
 
 ## Environment lifecycle
 
@@ -25,7 +25,7 @@ This repository is self-hosted with `pp`, Docker, Caddy, and self-hosted Convex.
 
 Deploy maintained releases from a clean `main` checkout. After deployment verify that `pp status` records the same commit as `git rev-parse HEAD`, and inspect all five service states. Retained previous releases are rollback history; do not redeploy them or rewrite their contents.
 
-1. Run `pnpm run audit:copy`. Known source Git remotes fail; `--configuration-only` explicitly skips remotes for existing-deployment checks.
+1. Run `pnpm run audit:copy`. Remotes must match `package.json` repository.url; `--configuration-only` explicitly skips that check.
 2. For a fresh copy or deliberate rotation, run `scripts/bootstrap-prod-env.sh <site-hostname>` and audit again. Routine deployments reuse credentials.
 3. Run `pp deploy`.
 4. Let the deploy hooks create buckets, refresh the Convex admin key, push the allowlisted function environment, and sync Convex functions.

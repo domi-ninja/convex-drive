@@ -12,7 +12,7 @@ Replace these inputs before deploying a new copy:
 | Project slug | `drive2-humanist-design` | `deploy.yml` project, images, data paths, route destination; `package.json` and lockfile |
 | Site hostname | `drive2.humanist.design` | Caddy site/redirect/CORS blocks, deployment smoke checks; bootstrap argument |
 | Deploy target | `deploy@p3.domi.ninja` | `deploy.yml` host SSH target |
-| Git repository | Operator supplied | `.git/config` |
+| Git repository | `ssh://git@git.domi.ninja:2222/domi-ninja/convex-drive.git`, explicitly selected by Domi | `package.json` repository.url and `.git/config` |
 
 API URLs derive as `api.<site-hostname>`. Backend and dashboard origins read the generated canonical API URL. Caddy still contains literal site/API hostnames. The dashboard has no public route; if deliberately published later its hostname is `dash.<site-hostname>`.
 
@@ -33,7 +33,7 @@ Do not copy `.env.local`, `.env.local.previous`, `.deploy`, or ignored editor st
 | Public dashboard route | Removed; dashboard service remains available privately. |
 | MinIO credentials in command arguments | Helper receives credentials through stdin, configures `MC_HOST_local` internally, and passes only bucket names as arguments. |
 | Hardcoded SSH fallbacks | Operational hooks derive their target from `deploy.yml`. |
-| Weak copy checks | Parsed configuration checks compare slug, image tags, data paths, route destination, site/API origins, env schema, duplicate keys, DB credential mapping, bucket names, and copied deployment state. Source Git remotes now fail the full audit. |
+| Weak copy checks | Parsed configuration checks compare slug, image tags, data paths, route destination, site/API origins, env schema, duplicate keys, DB credential mapping, bucket names, and copied deployment state. Git remotes must match the operator-selected repository URL. |
 | Public folder queries lacked authorization | Folder lookup, path resolution, recursive contents, and ZIP traversal verify ownership. Root and name lookups derive the user from authentication. |
 | Anonymous upload URL generation | Authentication is required before issuing a URL. |
 | Self-parent folder moves | Reject moving a folder into itself or descendants. |
@@ -56,10 +56,10 @@ All copy-isolation, authorization, and recovery changes are integrated into loca
 - `pnpm test`: anonymous/cross-user denial, owner access, root scoping, upload authorization, move cycles, configuration drift, bootstrap generation/rotation/restoration.
 - `bash scripts/test-postgres-rotation.sh`: disposable local Postgres verifies fresh initialization, changed-password authentication, rejection of the old password, rollback authentication, and preservation of a stored row.
 - `pnpm lint`, `pnpm build`, `pp plan`, and `pnpm run audit:copy --configuration-only` validate the application and existing deployment configuration.
-- The full `pnpm run audit:copy` deliberately fails until the source Git remote is replaced. `--configuration-only` explicitly skips that check; it is not proof that a new copy has independent remotes.
+- The full `pnpm run audit:copy` verifies Git remotes against `package.json` repository.url. `--configuration-only` explicitly skips that check; it is not proof that a new copy has independent remotes.
 
 ## Open and deferred
 
-- **Open:** Git remote still points at `convex-drive`. The operator must supply the destination repository URL; no URL is inferred or created.
+- **Resolved:** Domi explicitly selected `convex-drive` as the canonical Git repository. Independent copies must change the declared repository URL and remotes together. Other live deployments sharing this repository must retain their deployment identity when adopting changes.
 - **Deferred by request:** `pp` project-name interpolation, mail/OAuth setup, and publishing the dashboard.
 - **Outside this pass:** a general infrastructure upgrade policy and a complete application security audit. These checks cover the confirmed issues above, not every possible defect or external dependency.

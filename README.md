@@ -16,7 +16,7 @@ pp deploy
 
 `.env.local.example` documents the schema. Bootstrap creates mode-0600 `.env.local` with fresh Postgres, MinIO, instance, and JWT credentials. Deploy hooks create buckets, refresh the admin key, push only `SITE_URL`, `JWT_PRIVATE_KEY`, and `JWKS` into Convex, and sync functions. Convex CLI may add derived `VITE_CONVEX_SITE_URL` output. The dashboard has no public Caddy route.
 
-The full audit fails on source Git remotes. Use `pnpm run audit:copy --configuration-only` to check an existing deployment while its destination Git URL is pending; this explicitly omits the remote check.
+The full audit verifies Git remotes against `repository.url` in `package.json`. Domi selected `convex-drive` as this checkout's canonical repository. For an independent copy, change that URL and the Git remotes together. `--configuration-only` explicitly omits the remote check.
 
 ## Release workflow
 
@@ -25,7 +25,7 @@ The full audit fails on source Git remotes. Use `pnpm run audit:copy --configura
 ```sh
 git switch main
 git status --short
-pnpm run audit:copy --configuration-only
+pnpm run audit:copy
 pnpm test
 pnpm lint
 pnpm build
@@ -36,7 +36,7 @@ pp status
 
 `pp status` records the deployed commit and current/previous release IDs. After deployment, its `git_sha` should match `git rev-parse HEAD`, with `dirty: false`. The deploy covers web, Convex backend/dashboard, Postgres, MinIO, routes, function environment, and Convex functions. Older retained releases are rollback history, not additional live deployments.
 
-Publishing `main` is pending the destination Git repository URL. Do not push Drive 2's renamed configuration to the source repository by accident.
+Publish `main` to `upstream`, the operator-selected `convex-drive` repository. Other deployments using this repository must retain their own site identity, storage paths, and credentials when adopting changes.
 
 ## Rotate and recover
 
