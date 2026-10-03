@@ -65,7 +65,7 @@ get_existing_nonsecret() {
 
 # Preserve names that point at existing data. Fresh copies without an env file
 # receive names derived from the literal pp project slug.
-INSTANCE_NAME="$(get_existing_nonsecret INSTANCE_NAME "$API_HOST")"
+INSTANCE_NAME="$(get_existing_nonsecret INSTANCE_NAME "$PROJECT")"
 POSTGRES_DB="$(get_existing_nonsecret POSTGRES_DB "$DEFAULT_DB_NAME")"
 POSTGRES_USER="$(get_existing_nonsecret POSTGRES_USER "$DEFAULT_DB_NAME")"
 S3_STORAGE_EXPORTS_BUCKET="$(get_existing_nonsecret S3_STORAGE_EXPORTS_BUCKET "$PROJECT-convex-exports")"

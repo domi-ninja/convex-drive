@@ -23,6 +23,7 @@ Do not copy `.env.local`, `.env.local.previous`, `.deploy`, or ignored editor st
 | Finding | Implementation |
 | --- | --- |
 | Generic bootstrap identities and reused secrets | Required hostname; names derive from project/site; each run generates all local credentials. |
+| Fresh-copy instance and database defaults disagreed | New instance names use the project slug; Postgres DB names replace its hyphens with underscores, matching [Convex's database selection](https://github.com/get-convex/convex-backend/blob/main/crates/clusters/src/lib.rs). Existing names remain untouched. |
 | Bootstrap changed the live Postgres role before deploy | Bootstrap now changes local files only, keeps a mode-0600 `.env.local.previous`, and refuses to overwrite an outstanding recovery copy. |
 | Postgres initialization ignored rotated passwords on existing volumes | The Postgres image updates the configured role through a private Unix socket before starting its network listener. Deploying an earlier configuration restores its password too. TCP health checks cannot pass during temporary initialization. |
 | Infrastructure variables uploaded into Convex function storage | Push script owns exactly `SITE_URL`, `JWT_PRIVATE_KEY`, `JWKS`; unrestricted upload/pruning removed. Existing unrelated remote variables are not automatically deleted. |

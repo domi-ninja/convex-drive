@@ -16,6 +16,8 @@ test("bootstrap rotates locally, preserves names, and restores the previous envi
     bootstrap(hostname);
     const original = readFileSync(envFile, "utf8");
     const before = parseEnv(original);
+    // Convex derives its PostgreSQL database from the instance name.
+    expect(before.POSTGRES_DB === before.INSTANCE_NAME.replaceAll("-", "_")).toBe(true);
     bootstrap(hostname);
     const after = parseEnv(readFileSync(envFile, "utf8"));
     for (const key of ["INSTANCE_SECRET", "POSTGRES_PASSWORD", "MINIO_ROOT_USER", "MINIO_ROOT_PASSWORD", "JWT_PRIVATE_KEY", "JWKS"]) {
