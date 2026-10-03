@@ -3,7 +3,7 @@
 set -euo pipefail
 
 ENV_FILE="${ENV_FILE:-.env.local}"
-SSH_TARGET="${PP_HOST:-deploy@p3.domi.ninja}"
+SSH_TARGET="${PP_HOST:-$(awk '$1 == "ssh:" { print $2; exit }' deploy.yml)}"
 PROJECT="${PP_PROJECT:-}"
 
 if [[ ! -f "$ENV_FILE" ]]; then
@@ -64,13 +64,16 @@ if [ -z "$network" ] || [ -z "$access_key" ] || [ -z "$secret_key" ]; then
   echo "Error: incomplete MinIO container configuration" >&2
   exit 1
 fi
-docker run --rm --network "$network" --entrypoint /bin/sh minio/mc:latest -eu -c '\''
-  mc alias set local http://s3:9000 "$1" "$2" >/dev/null
-  shift 2
+# Credentials enter the helper through stdin and stay out of its argv/config.
+printf "%s\n%s\n" "$access_key" "$secret_key" |
+docker run --rm -i --network "$network" --entrypoint /bin/sh minio/mc:latest -eu -c '\''
+  IFS= read -r access_key
+  IFS= read -r secret_key
+  export MC_HOST_local="http://$access_key:$secret_key@s3:9000"
   for bucket in "$@"; do
     mc mb --ignore-existing "local/$bucket" >/dev/null
   done
-'\'' sh "$access_key" "$secret_key" "$@"'
+'\'' sh "$@"'
 
 remote_args=("$PROJECT" "${buckets[@]}")
 escaped_args=()

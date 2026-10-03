@@ -1,105 +1,62 @@
-# Copy-safety and cleanup plan
+# Copy isolation and security status
 
-Audited `drive2.humanist.design` against the adjacent `drive.humanist.design` checkout on 2026-09-04. I did not inspect `.env.local`; environment findings come from `.env.local.example`, source, scripts, and deploy configuration.
+Updated 2026-10-03. This is the implementation record, not a list of work still planned. Findings come from source, `.env.local.example`, tests, and deployment metadata. Credentials are consumed only by operational scripts and never printed.
 
 ## Copy contract
 
-A copied deployment has four independent human inputs:
+Replace these inputs before deploying a new copy:
 
-- App name: `Drive 2`
-- `pp` project slug: `drive2-humanist-design`
-- Site hostname: `drive2.humanist.design`
-- Deploy target: `deploy@p3.domi.ninja`
-
-The API hostname is always `api.<site-hostname>`. A dashboard hostname, when deliberately published, is `dash.<site-hostname>`. The project slug remains a literal in `deploy.yml` because `pp` project-name interpolation is not being changed in this pass.
-
-Before another copy is deployed, replace the app name, project slug, site hostname, deploy target, and Git remotes. Do not copy `.deploy/state.json` or ignored local state.
-
-## Confirmed collision risks
-
-| Finding | Evidence | Planned treatment |
+| Input | Current value | Locations |
 | --- | --- | --- |
-| Both checkouts push to the same repositories. | Their `.git/config` remotes are identical. | Operator must create and set new remotes; this cannot be inferred by a repository script. |
-| The bootstrap uses the old generic `humanist` identity. | `scripts/bootstrap-prod-env.sh` defaults to `humanist.design`, `api.humanist.design`, `humanist`, and `humanist-convex-*`. | Make the script derive URLs, database name, and bucket names from the current project slug and a required site hostname. |
-| The bootstrap preserves old credentials. | Generated values use `set_if_missing`. | Make every bootstrap run replace `.env.local` and rotate every locally generated credential. |
-| Convex receives infrastructure secrets. | `scripts/push-.env.local-to-convex.sh` uploads every entry. | Continue using `.env.local` as the canonical source, but push only the function-owned allowlist. |
-| Convex sync can erase foreign configuration. | `--prune` deletes every remote function variable. | Remove arbitrary pruning. Only the allowlisted keys are owned by this repository. |
-| One required bucket variable is misspelled. | `deploy.yml` requires `S3_STORAGE_MODULES_BUCKETonly`. | Correct it and add a static copy/config audit. |
-| CORS accepts arbitrary credentialed origins. | The Caddy preflight reflects the request `Origin`; ZIP responses use the API origin. | Allow only `https://drive2.humanist.design` at the proxy and function layers. |
-| The dashboard is public. | Caddy publishes `dash.drive2.humanist.design`. | Keep the dashboard service internal; do not create a public route by default. |
-| MinIO credentials appear in an SSH command line. | `scripts/ensure-minio-buckets.sh` passes them as remote shell arguments. | Send hook configuration over standard input. |
-| The admin-key hook asks for an unused value. | `scripts/refresh-convex-admin-key.sh` does not read `INSTANCE_SECRET`. | Remove that hook requirement. |
+| App name | `Drive 2` | `src/Header.tsx`, `index.html`, README |
+| Project slug | `drive2-humanist-design` | `deploy.yml` project, images, data paths, route destination; `package.json` and lockfile |
+| Site hostname | `drive2.humanist.design` | Caddy site/redirect/CORS blocks, deployment smoke checks; bootstrap argument |
+| Deploy target | `deploy@p3.domi.ninja` | `deploy.yml` host SSH target |
+| Git repository | Operator supplied | `.git/config` |
 
-## Environment model
+API URLs derive as `api.<site-hostname>`. Backend and dashboard origins read the generated canonical API URL. Caddy still contains literal site/API hostnames. The dashboard has no public route; if deliberately published later its hostname is `dash.<site-hostname>`.
 
-`.env.local` is the ignored, mode-`0600` source for both `pp` and the Convex CLI. It contains two trust classes:
+Do not copy `.env.local`, `.env.local.previous`, `.deploy`, or ignored editor state. New copies generate new names and credentials. Rotations of existing installations preserve database, instance, and bucket names because those identify existing data.
 
-- Deployment and CLI values stay local: instance, Postgres, MinIO, S3, and `CONVEX_SELF_HOSTED_ADMIN_KEY`.
-- Convex function values are copied from the same file by `scripts/push-.env.local-to-convex.sh`: `SITE_URL`, `JWT_PRIVATE_KEY`, and `JWKS`.
+## Completed
 
-The push script must never upload the first class. Standard password auth needs the JWT pair, so JWT generation belongs in the full bootstrap flow. The admin key is different: it can only be generated from a healthy backend and is refreshed by the post-deploy hook.
+| Finding | Implementation |
+| --- | --- |
+| Generic bootstrap identities and reused secrets | Required hostname; names derive from project/site; each run generates all local credentials. |
+| Bootstrap changed the live Postgres role before deploy | Bootstrap now changes local files only, keeps a mode-0600 `.env.local.previous`, and refuses to overwrite an outstanding recovery copy. |
+| Postgres initialization ignored rotated passwords on existing volumes | The Postgres image updates the configured role through a private Unix socket before starting its network listener. Deploying an earlier configuration restores its password too. TCP health checks cannot pass during temporary initialization. |
+| Infrastructure variables uploaded into Convex function storage | Push script owns exactly `SITE_URL`, `JWT_PRIVATE_KEY`, `JWKS`; unrestricted upload/pruning removed. Existing unrelated remote variables are not automatically deleted. |
+| Duplicate or unused environment inputs | Removed human-configured `VITE_SITE_URL`, `VITE_CONVEX_SITE_URL`, `DATABASE_URL`, AWS credential copies, SSE toggle, Scaleway credentials, and Better Auth secret. CLI may recreate `VITE_CONVEX_SITE_URL` as derived output. |
+| Misspelled modules bucket | Corrected `S3_STORAGE_MODULES_BUCKETonly`. |
+| Arbitrary credentialed CORS origins | Site-only preflight and ZIP origin checks. |
+| Public dashboard route | Removed; dashboard service remains available privately. |
+| MinIO credentials in command arguments | Helper receives credentials through stdin, configures `MC_HOST_local` internally, and passes only bucket names as arguments. |
+| Hardcoded SSH fallbacks | Operational hooks derive their target from `deploy.yml`. |
+| Weak copy checks | Parsed configuration checks compare slug, image tags, data paths, route destination, site/API origins, env schema, duplicate keys, DB credential mapping, bucket names, and copied deployment state. Source Git remotes now fail the full audit. |
+| Public folder queries lacked authorization | Folder lookup, path resolution, recursive contents, and ZIP traversal verify ownership. Root and name lookups derive the user from authentication. |
+| Anonymous upload URL generation | Authentication is required before issuing a URL. |
+| Self-parent folder moves | Reject moving a folder into itself or descendants. |
+| Overbuilt Convex sync wrapper | Removed; deploy calls `npx convex dev --once --env-file .env.local` directly. |
 
-Remove these redundant inputs:
+Confirmed unused demo code removed in the earlier cleanup: OAuth/email/OTP/reset examples, their UI/logos, unused duplicate components/configs, commented chat, messages schema/functions, placeholder desktop route, mail/webhook helpers, and their unused dependencies. Standard password auth remains.
 
-- `VITE_SITE_URL`
-- `VITE_CONVEX_SITE_URL` as a human input. Convex CLI may recreate it as derived compatibility output.
-- `DATABASE_URL`
-- `AWS_ACCESS_KEY_ID`
-- `AWS_SECRET_ACCESS_KEY`
-- `AWS_S3_DISABLE_SSE`
-- `SCALEWAY_ACCESS_KEY`
-- `SCALEWAY_SECRET_KEY`
-- `SCALEWAY_PROJECT_ID`
-- `BETTER_AUTH_SECRET`
+## Environment and recovery
 
-Keep `VITE_CONVEX_URL` and `CONVEX_SELF_HOSTED_URL`; different consumers require those names even though both contain the derived API origin. Generate `POSTGRES_DB` and all five bucket names from the project slug. Map the backend's AWS values directly from the generated MinIO credentials in `deploy.yml`.
+`.env.local` is the canonical ignored source. `.env.local.example` lists its keys. Bootstrap generates `INSTANCE_SECRET`, `POSTGRES_PASSWORD`, `MINIO_ROOT_USER`, `MINIO_ROOT_PASSWORD`, `JWT_PRIVATE_KEY`, and `JWKS`. The healthy backend generates the admin key during deploy.
 
-Each bootstrap run regenerates:
+Postgres, MinIO, instance and admin credentials are deployment/CLI values. Only `SITE_URL`, `JWT_PRIVATE_KEY`, and `JWKS` are copied into Convex function storage. The push hook must run after every rotation or restoration.
 
-- `INSTANCE_SECRET`
-- `POSTGRES_PASSWORD`
-- `MINIO_ROOT_USER`
-- `MINIO_ROOT_PASSWORD`
-- `JWT_PRIVATE_KEY`
-- `JWKS`
+Rotation is not a zero-downtime transaction. Deploy the new Postgres startup behavior once with existing credentials before rotating. Keep the recovery environment until the rotated deployment is verified. If deployment fails, run `scripts/bootstrap-prod-env.sh --restore`, then `pp deploy`; this reconciles infrastructure and function variables with the recovered environment. Never rely on bare `pp rollback` across credential changes: its hooks read the current local environment. Releases predating the Postgres startup fix cannot restore a role password themselves.
 
-This is intentional credential rotation, not an idempotent “fill missing values” command.
+## Verification
 
-## Confirmed dead legacy
+- `pnpm test`: anonymous/cross-user denial, owner access, root scoping, upload authorization, move cycles, configuration drift, bootstrap generation/rotation/restoration.
+- `bash scripts/test-postgres-rotation.sh`: disposable local Postgres verifies fresh initialization, changed-password authentication, rejection of the old password, rollback authentication, and preservation of a stored row.
+- `pnpm lint`, `pnpm build`, `pp plan`, and `pnpm run audit:copy --configuration-only` validate the application and existing deployment configuration.
+- The full `pnpm run audit:copy` deliberately fails until the source Git remote is replaced. `--configuration-only` explicitly skips that check; it is not proof that a new copy has independent remotes.
 
-The live frontend entry point renders only the standard password form and file manager. The following have no live import path and will be removed:
+## Open and deferred
 
-- OAuth, email-code/link, reset-code/link, showcase, and OTP frontend modules under `src/auth/`
-- Provider logo components and UI primitives used only by those modules
-- `src/components/Content.tsx`, the duplicate root `src/SignOutButton.tsx`, and the fully commented `src/Chat/Chat.tsx`
-- Unused card, dialog, skeleton, Radix toast, code-display, and duplicate utility modules
-- The placeholder desktop-client page and its otherwise unreferenced HTTP identity endpoint
-- Convex OAuth, Resend, Twilio, custom password, password reset, OTP, random-code, and messages modules
-- The `messages` table
-- `setup.mjs`, the mail DNS checker, and the repository-webhook helper, none of which is called by package scripts or deploy hooks
-- Duplicate legacy ESLint and PostCSS configs
-- Empty test scaffolding and dependencies; the repository contains no tests
-- Self-link dependencies and packages used only by removed code
-
-This is a deletion of unreachable demo code, not removal of a working authentication path. `Password` from `@convex-dev/auth` remains the only provider.
-
-## Implementation sequence
-
-1. Commit this evidence-based plan before source changes.
-2. Remove confirmed dead demo code, dependencies, schema, and routes.
-3. Consolidate user lookup on `api.users.viewer` and keep only standard password auth.
-4. Make `scripts/bootstrap-prod-env.sh <site-hostname>` recreate `.env.local`, derive non-secrets, and generate every local secret including the JWT pair without printing values.
-5. Make Convex environment sync an explicit allowlist sourced from `.env.local`.
-6. Simplify `deploy.yml`, correct the bucket typo, lock CORS, keep the dashboard private, and stop putting MinIO secrets in command arguments.
-7. Add a read-only audit script that checks copied state, stale identifiers, required/generated environment names, and unsafe Convex upload logic without reading secret values.
-8. Document the exact self-hosted deploy contract in root `AGENTS.md`, `README.md`, `.env.local.example`, and `files.md`.
-9. Run static checks and build.
-10. Rotate `.env.local`, deploy with `pp`, let the hooks refresh the admin key and push the allowlisted function environment, then verify the frontend and API.
-
-## Deferred deliberately
-
-- `pp` project-name interpolation
-- Creating or changing Git remotes without target repository URLs
-- Mail and OAuth provider setup
-- Publishing the Convex dashboard
-- Infrastructure image upgrades or digest changes; those need a separate compatibility review and are not identifier isolation
+- **Open:** Git remote still points at `convex-drive`. The operator must supply the destination repository URL; no URL is inferred or created.
+- **Deferred by request:** `pp` project-name interpolation, mail/OAuth setup, and publishing the dashboard.
+- **Outside this pass:** a general infrastructure upgrade policy and a complete application security audit. These checks cover the confirmed issues above, not every possible defect or external dependency.

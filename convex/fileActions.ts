@@ -4,6 +4,7 @@ import JSZip from "jszip";
 import { api } from "./_generated/api";
 import { Id } from "./_generated/dataModel";
 import { action } from "./_generated/server";
+import { requireUser } from "./access";
 
 export const downloadFilesAsZipBytes = action({
   args: {
@@ -20,10 +21,12 @@ export const downloadFilesAsZipBytes = action({
     filename: v.string(),
   }),
   handler: async (ctx, args) => {
+    await requireUser(ctx);
     const { filesOrFolders } = args;
     const zip = new JSZip();
 
     const zipRec = async (currentZip: JSZip, folderId: Id<"folders">) => {
+      await ctx.runQuery(api.folders.getFolder, { folderId });
       const files = await ctx.runQuery(api.files.listFilesInFolder, { folderId });
 
       for (const file of files) {
@@ -87,4 +90,3 @@ export const downloadFilesAsZipBytes = action({
     };
   }
 });
-

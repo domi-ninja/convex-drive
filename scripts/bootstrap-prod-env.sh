@@ -5,9 +5,23 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SITE_HOST="${1:-}"
 ENV_FILE="${2:-$ROOT_DIR/.env.local}"
+BACKUP_FILE="$ENV_FILE.previous"
+
+if [[ "$SITE_HOST" == --restore ]]; then
+  [[ -f "$BACKUP_FILE" ]] || { echo "Error: no previous environment to restore" >&2; exit 1; }
+  mv "$BACKUP_FILE" "$ENV_FILE"
+  chmod 600 "$ENV_FILE"
+  echo "Restored the previous local environment. Run pp deploy to apply it, including Convex function variables."
+  exit 0
+fi
 
 if [[ -z "$SITE_HOST" ]]; then
-  echo "Usage: scripts/bootstrap-prod-env.sh <site-hostname> [env-file]" >&2
+  echo "Usage: scripts/bootstrap-prod-env.sh <site-hostname>|--restore [env-file]" >&2
+  exit 1
+fi
+
+if [[ -e "$BACKUP_FILE" ]]; then
+  echo "Error: an environment recovery copy already exists. Restore it with --restore, or archive it after verifying the previous rotation." >&2
   exit 1
 fi
 
@@ -91,25 +105,12 @@ MINIO_ROOT_PASSWORD="$(openssl rand -hex 32)"
   node "$ROOT_DIR/scripts/generate-jwt.js"
 } > "$TEMP_FILE"
 
-STATE_PROJECT=""
-if [[ -f "$ROOT_DIR/.deploy/state.json" ]]; then
-  STATE_PROJECT="$(sed -n 's/^[[:space:]]*"project":[[:space:]]*"\([^"]*\)".*/\1/p' "$ROOT_DIR/.deploy/state.json" | head -n 1)"
-fi
+# Validate the candidate without exposing its values or touching production.
+(cd "$ROOT_DIR" && node scripts/audit-copy.mjs --configuration-only --env-file "$TEMP_FILE")
 
-if [[ -f "$ENV_FILE" && "$STATE_PROJECT" == "$PROJECT" ]]; then
-  SSH_TARGET="$(awk '$1 == "ssh:" { print $2; exit }' "$ROOT_DIR/deploy.yml")"
-  if [[ -z "$SSH_TARGET" ]]; then
-    echo "Error: could not determine the deploy SSH target" >&2
-    exit 1
-  fi
-  if [[ ! "$POSTGRES_USER" =~ ^[A-Za-z0-9_.-]+$ || ! "$POSTGRES_DB" =~ ^[A-Za-z0-9_.-]+$ ]]; then
-    echo "Error: existing Postgres identifiers contain unsupported characters" >&2
-    exit 1
-  fi
-
-  remote_command="container=\$(docker ps --filter label=pp.project=$(printf '%q' "$PROJECT") --filter label=pp.service=postgres --format '{{.Names}}' | head -n 1); test -n \"\$container\" && docker exec -i \"\$container\" psql -v ON_ERROR_STOP=1 -U $(printf '%q' "$POSTGRES_USER") -d $(printf '%q' "$POSTGRES_DB")"
-  printf 'ALTER ROLE "%s" WITH PASSWORD '\''%s'\'';\n' "$POSTGRES_USER" "$POSTGRES_PASSWORD" | ssh "$SSH_TARGET" "$remote_command" >/dev/null
-  echo "Rotated the live Postgres role before replacing local credentials."
+if [[ -f "$ENV_FILE" ]]; then
+  cp -p "$ENV_FILE" "$BACKUP_FILE"
+  chmod 600 "$BACKUP_FILE"
 fi
 
 chmod 600 "$TEMP_FILE"
@@ -117,5 +118,6 @@ mv "$TEMP_FILE" "$ENV_FILE"
 trap - EXIT
 
 echo "Rotated production credentials in $ENV_FILE"
+echo "No running services were changed. Deploy to apply; use --restore and deploy to recover."
 echo "Preserved existing data-bearing names when present."
 echo "The Convex admin key will be generated from the healthy backend during deploy."

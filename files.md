@@ -9,14 +9,22 @@
 - `.gitignore` - Excludes credentials, deploy state, dependencies, builds, logs, and editor state.
 - `deploy.yml` - Literal `pp` project identity, service graph, environment subsets, hooks, routes, and smoke checks.
 - `deploy/caddy/humanist.caddy.tmpl` - Public site/API proxy with exact-origin CORS; dashboard is not published.
-- `scripts/audit-copy.sh` - Read-only copy and environment-contract checks; never prints environment values.
-- `scripts/bootstrap-prod-env.sh` - Full credential rotation and `.env.local` generation, including JWT keys and live Postgres synchronization.
+- `scripts/audit-copy.sh` - Shell entry point for the read-only configuration audit.
+- `scripts/audit-copy.mjs` - Parsed identity, environment, data-path, and Git remote checks; never prints secret values.
+- `scripts/audit-copy.test.mjs` - Configuration drift and secret-output tests.
+- `scripts/bootstrap-prod-env.sh` - Local credential generation with a protected recovery copy and restore command.
+- `scripts/bootstrap-prod-env.test.mjs` - Tests full rotation, preserved names, recovery-copy protection, and restoration using temporary files.
+- `scripts/test-postgres-rotation.sh` - Disposable local Docker test for startup, password rotation, rollback, and retained data.
+- `deploy/postgres/Dockerfile` - Postgres image with password synchronization on existing volumes.
+- `deploy/postgres/entrypoint.sh` - Updates the configured role through a private socket before accepting network connections.
 - `scripts/generate-jwt.js` - Internal bootstrap helper that emits a new RSA private key and public JWKS.
 - `scripts/ensure-minio-buckets.sh` - Idempotent post-deploy bucket creation using credentials read inside the remote MinIO container.
 - `scripts/refresh-convex-admin-key.sh` - Generates the current backend's admin key and writes it to `.env.local`.
 - `scripts/push-.env.local-to-convex.sh` - Pushes only `SITE_URL`, `JWT_PRIVATE_KEY`, and `JWKS` into Convex function storage.
 
 ## Build and tooling
+
+- `vitest.config.mjs` - Focused backend and operational test configuration.
 
 - `package.json` - Package identity, commands, and direct dependencies.
 - `pnpm-lock.yaml` - Reproducible dependency graph.
@@ -35,6 +43,9 @@
 - `index.html` - Vite HTML shell and Drive 2 page title.
 
 ## Convex backend
+
+- `convex/access.ts` - Shared authentication and folder ownership checks.
+- `convex/access.test.ts` - Anonymous/cross-user denial and owner-success tests for folder, upload, ZIP, and root operations.
 
 - `convex/auth.config.ts` - Self-hosted Convex Auth issuer configuration.
 - `convex/auth.ts` - Standard password-only Convex Auth registration.

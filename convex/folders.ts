@@ -9,6 +9,7 @@ import { getAuthUserId } from "@convex-dev/auth/server";
 import { api } from "./_generated/api";
 import { Doc, Id } from "./_generated/dataModel";
 import { FileWithUrl } from "./files";
+import { requireFolder, requireUser } from "./access";
 
 async function ensureUniqueName(name: string, existingFiles: Array<Doc<"folders">>): Promise<string> {
 
@@ -54,7 +55,7 @@ export const saveFolder = mutation({
 
     const existingFolders = await ctx.db
       .query("folders")
-      .withIndex("by_folderId", (q) => q.eq("folderId", args.folderId))
+      .withIndex("by_userId_and_folderId_and_name", (q) => q.eq("userId", userId).eq("folderId", args.folderId))
       .collect();
     const name = await ensureUniqueName(args.name, existingFolders);
 
@@ -77,10 +78,7 @@ export type Folder = Doc<"folders">;// & { url: string | null };
 export const getFolder = query({
   args: { folderId: v.id("folders") },
   handler: async (ctx, args): Promise<Folder> => {
-    const folder = await ctx.db.get(args.folderId);
-    if (!folder) {
-      throw new Error("Folder not found");
-    }
+    const folder = await requireFolder(ctx, args.folderId);
     return folder;
   },
 });
@@ -142,10 +140,7 @@ export const getFolderPathRec = query({
     size: v.number(),
   })),
   handler: async (ctx, args): Promise<Array<Folder>> => {
-    const folder = await ctx.db.get(args.folderId);
-    if (!folder) {
-      throw new Error("Folder not found");
-    }
+    const folder = await requireFolder(ctx, args.folderId);
 
     if (folder.folderId) {
       const parentPath = await ctx.runQuery(api.folders.getFolderPathRec, { folderId: folder.folderId });
@@ -160,6 +155,7 @@ export const getFilesAndFoldersRec = query({
   args: { folderId: v.id("folders") },
   handler: async (ctx, args): Promise<FolderWithFiles> => {
     const parentFolderId = args.folderId;
+    const folder = await requireFolder(ctx, parentFolderId);
 
     const rawFiles = await ctx.db
       .query("files")
@@ -180,11 +176,6 @@ export const getFilesAndFoldersRec = query({
       return await ctx.runQuery(api.folders.getFilesAndFoldersRec, { folderId: folder._id });
     }));
 
-    const folder = await ctx.db.get(parentFolderId);
-    if (!folder) {
-      throw new Error("Folder not found in getFilesAndFoldersRec, this should not happen");
-    }
-
     return {
       ...folder,
       files,
@@ -194,18 +185,17 @@ export const getFilesAndFoldersRec = query({
 });
 
 export const ensureRootFolder = mutation({
-  args: { userId: v.id("users") },
-  handler: async (ctx, args): Promise<Id<"folders">> => {
+  args: {},
+  returns: v.id("folders"),
+  handler: async (ctx) => {
     const ROOT = "Root";
-    if (!args.userId) {
-      throw new Error("User not authenticated");
-    }
-    let result = await ctx.db.query("folders").withIndex("by_userAndName",
-      (q) => q.eq("userId", args.userId).eq("name", ROOT)).first();
+    const userId = await requireUser(ctx);
+    let result = await ctx.db.query("folders").withIndex("by_userId_and_folderId_and_name",
+      (q) => q.eq("userId", userId).eq("folderId", undefined).eq("name", ROOT)).first();
     if (!result) {
       const id = await ctx.db.insert("folders", {
         name: ROOT,
-        userId: args.userId,
+        userId,
         size: 0,
         folderId: undefined, // Root folder has no parent
       });
@@ -289,6 +279,9 @@ export const moveFolder = mutation({
 
     // Prevent moving a folder into itself or its own descendants
     if (args.targetFolderId) {
+      if (args.targetFolderId === args.folderId) {
+        throw new Error("Cannot move folder into itself");
+      }
       const targetFolder = await ctx.db.get(args.targetFolderId);
       if (!targetFolder || targetFolder.userId !== userId) {
         throw new Error("Target folder not found or user not authorized");
@@ -342,17 +335,15 @@ export const findFolderByName = query({
   args: {
     parentFolderId: v.optional(v.id("folders")),
     name: v.string(),
-    userId: v.id("users")
   },
   returns: v.union(v.id("folders"), v.null()),
   handler: async (ctx, args): Promise<Id<"folders"> | null> => {
+    const userId = await requireUser(ctx);
+    if (args.parentFolderId) await requireFolder(ctx, args.parentFolderId);
     const folder = await ctx.db
       .query("folders")
-      .withIndex("by_folderId", (q) => q.eq("folderId", args.parentFolderId))
-      .filter((q) => q.and(
-        q.eq(q.field("name"), args.name),
-        q.eq(q.field("userId"), args.userId)
-      ))
+      .withIndex("by_userId_and_folderId_and_name", (q) =>
+        q.eq("userId", userId).eq("folderId", args.parentFolderId).eq("name", args.name))
       .first();
 
     return folder?._id || null;
@@ -362,11 +353,11 @@ export const findFolderByName = query({
 export const resolveFolderPath = query({
   args: {
     path: v.string(),
-    userId: v.id("users"),
     rootFolderId: v.id("folders")
   },
   returns: v.union(v.id("folders"), v.null()),
   handler: async (ctx, args): Promise<Id<"folders"> | null> => {
+    await requireFolder(ctx, args.rootFolderId);
     // Handle root path
     if (args.path === "/" || args.path === "" || args.path === "Root") {
       return args.rootFolderId;
@@ -385,7 +376,6 @@ export const resolveFolderPath = query({
       currentFolderId = await ctx.runQuery(api.folders.findFolderByName, {
         parentFolderId: currentFolderId,
         name: segment,
-        userId: args.userId
       });
 
       if (!currentFolderId) return null;
@@ -402,6 +392,8 @@ export const getFolderPath = query({
   },
   returns: v.string(),
   handler: async (ctx, args): Promise<string> => {
+    await requireFolder(ctx, args.rootFolderId);
+    await requireFolder(ctx, args.folderId);
     // If this is the root folder, return "/"
     if (args.folderId === args.rootFolderId) {
       return "/";

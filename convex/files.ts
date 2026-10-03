@@ -7,6 +7,7 @@ import {
 // Removed "use node" and JSZip import as actions are moved
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { Doc } from "./_generated/dataModel";
+import { requireUser } from "./access";
 
 async function ensureUniqueName(name: string, existingFiles: Array<Doc<"files">>): Promise<string> {
 
@@ -71,7 +72,10 @@ export const saveFile = mutation({
 export type FileWithUrl = Doc<"files"> & { url: string | null };
 
 export const generateFileUploadUrl = mutation({
+  args: {},
+  returns: v.string(),
   handler: async (ctx) => {
+    await requireUser(ctx);
     return await ctx.storage.generateUploadUrl();
   },
 });

@@ -62,7 +62,7 @@ for name in "${FUNCTION_ENV[@]}"; do
     exit 1
   fi
 
-  if output="$(npx convex env set "${DEPLOYMENT_ARGS[@]}" -- "$name" "$value" 2>&1)"; then
+  if output="$(printf '%s' "$value" | npx convex env set "${DEPLOYMENT_ARGS[@]}" -- "$name" 2>&1)"; then
     echo "Set $name"
   else
     output="${output//$value/<redacted>}"

@@ -39,7 +39,6 @@ export function FolderProvider({ children }: { children: React.ReactNode }) {
     const resolvedFolderId = useQuery(api.folders.resolveFolderPath,
         pendingPath && user?._id && rootFolderId ? {
             path: pendingPath,
-            userId: user._id,
             rootFolderId: rootFolderId
         } : "skip"
     );
@@ -60,7 +59,7 @@ export function FolderProvider({ children }: { children: React.ReactNode }) {
             if (!user?._id) return;
 
             try {
-                const rootFId = await ensureRootFolder({ userId: user._id });
+                const rootFId = await ensureRootFolder({});
                 setRootFolderId(rootFId);
             } catch (error) {
                 console.error("Failed to initialize root folder:", error);

@@ -24,7 +24,8 @@ const applicationTables = {
   })
     .index("by_userId", ["userId"])
     .index("by_folderId", ["folderId"])
-    .index("by_userAndName", ["userId", "name"]),
+    .index("by_userAndName", ["userId", "name"])
+    .index("by_userId_and_folderId_and_name", ["userId", "folderId", "name"]),
 };
 
 export default defineSchema({

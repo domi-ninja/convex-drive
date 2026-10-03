@@ -3,7 +3,7 @@
 set -euo pipefail
 
 ENV_FILE="${ENV_FILE:-.env.local}"
-SSH_TARGET="${PP_HOST:-deploy@p3.domi.ninja}"
+SSH_TARGET="${PP_HOST:-$(awk '$1 == "ssh:" { print $2; exit }' deploy.yml)}"
 PROJECT="${PP_PROJECT:-}"
 SERVICE="${PP_SERVICE:-convex-backend}"
 
@@ -72,8 +72,8 @@ if [[ -n "$instance_name" && "$key_instance" != "$instance_name" ]]; then
 fi
 
 tmp="$(mktemp)"
-awk -v key="$admin_key" '
-  BEGIN { done=0 }
+CONVEX_ADMIN_KEY="$admin_key" awk '
+  BEGIN { done=0; key=ENVIRON["CONVEX_ADMIN_KEY"] }
   /^CONVEX_SELF_HOSTED_ADMIN_KEY=/ {
     if (!done) {
       print "CONVEX_SELF_HOSTED_ADMIN_KEY=" key
