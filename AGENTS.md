@@ -23,6 +23,8 @@ This repository is self-hosted with `pp`, Docker, Caddy, and self-hosted Convex.
 
 ## Production sequence
 
+Deploy maintained releases from a clean `main` checkout. After deployment verify that `pp status` records the same commit as `git rev-parse HEAD`, and inspect all five service states. Retained previous releases are rollback history; do not redeploy them or rewrite their contents.
+
 1. Run `pnpm run audit:copy`. Known source Git remotes fail; `--configuration-only` explicitly skips remotes for existing-deployment checks.
 2. For a fresh copy or deliberate rotation, run `scripts/bootstrap-prod-env.sh <site-hostname>` and audit again. Routine deployments reuse credentials.
 3. Run `pp deploy`.

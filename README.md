@@ -18,6 +18,26 @@ pp deploy
 
 The full audit fails on source Git remotes. Use `pnpm run audit:copy --configuration-only` to check an existing deployment while its destination Git URL is pending; this explicitly omits the remote check.
 
+## Release workflow
+
+`main` contains the maintained application, deployment scripts, and documentation. Merge completed work into `main`, run the checks below, and deploy from a clean checkout. Routine releases use the existing credentials.
+
+```sh
+git switch main
+git status --short
+pnpm run audit:copy --configuration-only
+pnpm test
+pnpm lint
+pnpm build
+pp plan
+pp deploy
+pp status
+```
+
+`pp status` records the deployed commit and current/previous release IDs. After deployment, its `git_sha` should match `git rev-parse HEAD`, with `dirty: false`. The deploy covers web, Convex backend/dashboard, Postgres, MinIO, routes, function environment, and Convex functions. Older retained releases are rollback history, not additional live deployments.
+
+Publishing `main` is pending the destination Git repository URL. Do not push Drive 2's renamed configuration to the source repository by accident.
+
 ## Rotate and recover
 
 Routine deployments use `pp deploy`; they do not need fresh keys.

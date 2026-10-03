@@ -51,6 +51,8 @@ Rotation is not a zero-downtime transaction. Deploy the new Postgres startup beh
 
 ## Verification
 
+All copy-isolation, authorization, and recovery changes are integrated into local `main`. The README describes the clean-main release workflow. Deployment commit and release IDs live in `pp status` rather than a hardcoded documentation value that becomes stale at the next release.
+
 - `pnpm test`: anonymous/cross-user denial, owner access, root scoping, upload authorization, move cycles, configuration drift, bootstrap generation/rotation/restoration.
 - `bash scripts/test-postgres-rotation.sh`: disposable local Postgres verifies fresh initialization, changed-password authentication, rejection of the old password, rollback authentication, and preservation of a stored row.
 - `pnpm lint`, `pnpm build`, `pp plan`, and `pnpm run audit:copy --configuration-only` validate the application and existing deployment configuration.
